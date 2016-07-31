@@ -1,27 +1,26 @@
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QColor
 from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QGraphicsItem
-from PyQt5.QtCore import QPoint
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
-from PyQt5.QtGui import QPainter, QFont
-from PyQt5.QtGui import QPainterPath
-from PyQt5.QtGui import QPolygonF
 from PyQt5.QtWidgets import QDockWidget
+from PyQt5.QtWidgets import QGraphicsItem
 from PyQt5.QtWidgets import QGraphicsScene
 from PyQt5.QtWidgets import QGraphicsView
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QTextEdit
 
 from dot.parser import XDotParser
+from nodes import Base, Process, Edge
 
 
 class Widget(QtWidgets.QGraphicsView):
+    onSelected = pyqtSignal(Base)
+
     def __init__(self):
         super().__init__()
 
-        parser = XDotParser(open("a.xdot").read().encode('utf-8'))
+        parser = XDotParser(open("graph2/graph.xdot").read().encode('utf-8'))
         self.graph = parser.parse()
 
         self.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -52,23 +51,37 @@ class Widget(QtWidgets.QGraphicsView):
         #	if isinstance(item, QAbstractGraphicsShapeItem):
         #		item.setBrush(QColor(255, 0, 0, 128))
 
-        def mousePressEvent(self, QMouseEvent):
-            super().mousePressEvent(QMouseEvent)
-            item = self.itemAt(QMouseEvent.x(), QMouseEvent.y())
+    def mousePressEvent(self, QMouseEvent):
+        super().mousePressEvent(QMouseEvent)
+        item = self.itemAt(QMouseEvent.x(), QMouseEvent.y())
 
+        while item and not isinstance(item, Base):
+            item = item.parentItem()
+
+        if item:
             print(item)
+            self.onSelected.emit(item)
 
 
 class ExampleApp(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super(ExampleApp, self).__init__(parent)
-        self.setCentralWidget(Widget())
+        graph = Widget()
+        self.setCentralWidget(graph)
 
         dock = QDockWidget("Content", self)
         dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
         edit = QTextEdit()
         dock.setWidget(edit)
         self.addDockWidget(Qt.BottomDockWidgetArea, dock)
+
+        def display(base):
+            if isinstance(base, Process):
+                edit.setText(open('graph2/' + base.arguments).read())
+            elif isinstance(base, Edge) and base.file:
+                edit.setText(open('graph2/' + base.file).read())
+
+        graph.onSelected.connect(display)
 
         dock2 = QDockWidget("test", self)
         dock2.setWidget(QPushButton("Info", dock2))

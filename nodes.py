@@ -56,6 +56,7 @@ class MyPath(QGraphicsPathItem):
 class Edge(Base):
     def __init__(self, points):
         super().__init__()
+        self.file = None
 
         path = QPainterPath()
         path.moveTo(points[0][0], points[0][1])
@@ -83,3 +84,12 @@ class Ellipse(Base):
         ellipse = QGraphicsEllipseItem(*__args)
         self.addToGroup(ellipse)
         ellipse.setAcceptHoverEvents(True)
+
+
+class Process(Ellipse):
+    def __init__(self, *__args):
+        super().__init__(*__args)
+        self.arguments = []
+
+    def setArguments(self, args):
+        self.arguments = args

@@ -18,7 +18,7 @@ import sys
 
 from dot import elements
 from dot.Pen import Pen
-from nodes import Ellipse, Edge
+from nodes import Ellipse, Edge, Process
 from .lexer import ParseError, DotLexer
 
 EOF = -1
@@ -482,7 +482,14 @@ class XDotParser(DotParser):
             if attr in attrs:
                 parser = XDotAttrParser(self, attrs[attr])
                 shapes.extend(parser.parse())
-        node = Ellipse(x - w / 2, y - h / 2, w, h)
+
+        if 'URL' in attrs:
+            if attrs['URL'].decode('utf-8').endswith('.args'):
+                node = Process(x - w / 2, y - h / 2, w, h)
+                node.setArguments(attrs['URL'].decode('utf-8'))
+        else:
+            node = Ellipse(x - w / 2, y - h / 2, w, h)
+
         self.node_by_name[id] = node
         if shapes:
             self.nodes.append(node)
@@ -508,6 +515,9 @@ class XDotParser(DotParser):
 
             edge = Edge(points)
             self.edges.append(edge)
+
+            if 'URL' in attrs:
+                edge.file = attrs['URL'].decode('utf-8')
 
             for e in shapes:
                 if isinstance(e, elements.PolygonShape):
