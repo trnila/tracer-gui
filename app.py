@@ -24,6 +24,8 @@ class Widget(QtWidgets.QGraphicsView):
 		parser = MyParser(open("a.xdot").read().encode('utf-8'))
 		self.graph = parser.parse()
 
+		self.setDragMode(QGraphicsView.ScrollHandDrag)
+
 		self.p = p = QGraphicsScene(self)
 		self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.HighQualityAntialiasing)
 
