@@ -9,19 +9,15 @@ from PyQt5.QtWidgets import QGraphicsView
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
-from xdot import *
-
-
-class MyParser(XDotParser):
-	def handle_edge(self, src_id, dst_id, attrs):
-		super().handle_edge(src_id, dst_id, attrs)
+from dot.elements import EllipseShape, TextShape, BezierShape, PolygonShape
+from dot.parser import XDotParser
 
 
 class Widget(QtWidgets.QGraphicsView):
 	def __init__(self):
 		super().__init__()
 
-		parser = MyParser(open("a.xdot").read().encode('utf-8'))
+		parser = XDotParser(open("a.xdot").read().encode('utf-8'))
 		self.graph = parser.parse()
 
 		self.setDragMode(QGraphicsView.ScrollHandDrag)
