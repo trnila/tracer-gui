@@ -5,6 +5,7 @@ from PyQt5.QtGui import QPainter, QFont
 from PyQt5.QtGui import QPainterPath
 from PyQt5.QtGui import QPolygonF
 from PyQt5.QtWidgets import QGraphicsScene
+from PyQt5.QtWidgets import QGraphicsView
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
@@ -61,6 +62,12 @@ class Widget(QtWidgets.QGraphicsView):
 						print("unknown")
 
 						# self.fitInView(p.itemsBoundingRect(), Qt.Qt.KeepAspectRatio)
+
+	def wheelEvent(self, evt):
+		scale = 1.2 if evt.angleDelta().y() > 0 else 0.8
+
+		self.scale(scale, scale)
+		self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
 
 
 class ExampleApp(QtWidgets.QMainWindow):
