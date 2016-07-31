@@ -2,10 +2,17 @@ from PyQt5 import QtWidgets
 from PyQt5.QtGui import QColor
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QGraphicsItem
+from PyQt5.QtCore import QPoint
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QPainter, QFont
+from PyQt5.QtGui import QPainterPath
+from PyQt5.QtGui import QPolygonF
+from PyQt5.QtWidgets import QDockWidget
 from PyQt5.QtWidgets import QGraphicsScene
 from PyQt5.QtWidgets import QGraphicsView
-from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QTextEdit
 
 from dot.parser import XDotParser
 
@@ -45,25 +52,34 @@ class Widget(QtWidgets.QGraphicsView):
         #	if isinstance(item, QAbstractGraphicsShapeItem):
         #		item.setBrush(QColor(255, 0, 0, 128))
 
+        def mousePressEvent(self, QMouseEvent):
+            super().mousePressEvent(QMouseEvent)
+            item = self.itemAt(QMouseEvent.x(), QMouseEvent.y())
+
+            print(item)
+
 
 class ExampleApp(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super(ExampleApp, self).__init__(parent)
+        self.setCentralWidget(Widget())
 
-        frame = QWidget()
-        layout = QVBoxLayout(frame)
-        frame.show()
+        dock = QDockWidget("Content", self)
+        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
+        edit = QTextEdit()
+        dock.setWidget(edit)
+        self.addDockWidget(Qt.BottomDockWidgetArea, dock)
 
-        layout.addWidget(Widget())
-
-        self.setCentralWidget(frame)
+        dock2 = QDockWidget("test", self)
+        dock2.setWidget(QPushButton("Info", dock2))
+        self.addDockWidget(Qt.RightDockWidgetArea, dock2)
 
 
 def main():
     app = QtWidgets.QApplication([])
     window = ExampleApp()
     window.setWindowTitle('GUI')
-    window.setFixedSize(800, 600)
+    window.setFixedSize(1024, 768)
     window.show()
     app.exec_()
 
