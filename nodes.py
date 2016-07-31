@@ -43,6 +43,13 @@ class Base(QGraphicsItemGroup):
         item.setPos(x - w / 2, y - fontMetrics.height())
         self.addToGroup(item)
 
+    def shape(self):
+        for i in self.childItems():
+            if isinstance(i, MyPath):
+                return i.shape()
+
+        return super().shape()
+
 
 class MyPath(QGraphicsPathItem):
     # clip only path
