@@ -1,93 +1,71 @@
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QPoint
 from PyQt5.QtGui import QColor
-from PyQt5.QtGui import QPainter, QFont
-from PyQt5.QtGui import QPainterPath
-from PyQt5.QtGui import QPolygonF
+from PyQt5.QtGui import QPainter
+from PyQt5.QtWidgets import QGraphicsItem
 from PyQt5.QtWidgets import QGraphicsScene
 from PyQt5.QtWidgets import QGraphicsView
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
-from dot.elements import EllipseShape, TextShape, BezierShape, PolygonShape
 from dot.parser import XDotParser
 
 
 class Widget(QtWidgets.QGraphicsView):
-	def __init__(self):
-		super().__init__()
+    def __init__(self):
+        super().__init__()
 
-		parser = XDotParser(open("a.xdot").read().encode('utf-8'))
-		self.graph = parser.parse()
+        parser = XDotParser(open("a.xdot").read().encode('utf-8'))
+        self.graph = parser.parse()
 
-		self.setDragMode(QGraphicsView.ScrollHandDrag)
+        self.setDragMode(QGraphicsView.ScrollHandDrag)
+        self.setMouseTracking(True)
 
-		self.p = p = QGraphicsScene(self)
-		self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.HighQualityAntialiasing)
+        self.p = p = QGraphicsScene(self)
+        self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.HighQualityAntialiasing)
 
-		self.setScene(self.p)
-		self.show()
+        self.setScene(self.p)
+        self.show()
 
-		def toQColor(color):
-			return QColor(color[0] * 255, color[1] * 255, color[2] * 255, color[3] * 255)
+        def toQColor(color):
+            return QColor(color[0] * 255, color[1] * 255, color[2] * 255, color[3] * 255)
 
-		for type in [self.graph.nodes, self.graph.edges]:
-			for node in type:
-				for shape in node.shapes:
-					if isinstance(shape, EllipseShape):
-						e = p.addEllipse(shape.x0 - shape.w / 2.0, shape.y0 - shape.h / 2.0, shape.w, shape.h)
+        for type in [self.graph.nodes, self.graph.edges]:
+            for node in type:
+                if isinstance(node, QGraphicsItem):
+                    p.addItem(node)
 
-						if shape.filled:
-							e.setBrush(toQColor(shape.pen.fillcolor))
-					elif isinstance(shape, TextShape):
-						p.setFont(QFont(shape.pen.fontname, shape.pen.fontsize))
-						text = p.addText(shape.t)
-						text.setPos(shape.x, shape.y)
-					elif isinstance(shape, BezierShape):
-						path = QPainterPath()
-						path.moveTo(shape.points[0][0], shape.points[0][1])
+    def wheelEvent(self, evt):
+        scale = 1.2 if evt.angleDelta().y() > 0 else 0.8
 
-						for part in shape.points:
-							path.lineTo(part[0], part[1])
+        self.scale(scale, scale)
+        self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
 
-						p.addPath(path)
-					elif isinstance(shape, PolygonShape):
-						polygon = QPolygonF()
-						for point in shape.points:
-							polygon.append(QPoint(point[0], point[1]))
-						p.addPolygon(polygon, QColor(0, 0, 0))
-					else:
-						print("unknown")
-
-						# self.fitInView(p.itemsBoundingRect(), Qt.Qt.KeepAspectRatio)
-
-	def wheelEvent(self, evt):
-		scale = 1.2 if evt.angleDelta().y() > 0 else 0.8
-
-		self.scale(scale, scale)
-		self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        # def mousePressEvent(self, QMouseEvent):
+        #	item = self.itemAt(QMouseEvent.x(), QMouseEvent.y())
+        #	if isinstance(item, QAbstractGraphicsShapeItem):
+        #		item.setBrush(QColor(255, 0, 0, 128))
 
 
 class ExampleApp(QtWidgets.QMainWindow):
-	def __init__(self, parent=None):
-		super(ExampleApp, self).__init__(parent)
+    def __init__(self, parent=None):
+        super(ExampleApp, self).__init__(parent)
 
-		frame = QWidget()
-		layout = QVBoxLayout(frame)
-		frame.show()
+        frame = QWidget()
+        layout = QVBoxLayout(frame)
+        frame.show()
 
-		layout.addWidget(Widget())
+        layout.addWidget(Widget())
 
-		self.setCentralWidget(frame)
+        self.setCentralWidget(frame)
 
 
 def main():
-	app = QtWidgets.QApplication([])
-	window = ExampleApp()
-	window.setWindowTitle('GUI')
-	window.setFixedSize(800, 600)
-	window.show()
-	app.exec_()
+    app = QtWidgets.QApplication([])
+    window = ExampleApp()
+    window.setWindowTitle('GUI')
+    window.setFixedSize(800, 600)
+    window.show()
+    app.exec_()
 
 
 main()
