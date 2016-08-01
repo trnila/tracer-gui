@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import colorsys
+import json
 import sys
 
 from dot import elements
@@ -423,6 +424,8 @@ class XDotParser(DotParser):
         lexer = DotLexer(buf=xdotcode)
         DotParser.__init__(self, lexer)
 
+        self.json = json.load(open('/tmp/graph/graph.json', 'r'))
+
         self.nodes = []
         self.edges = []
         self.shapes = []
@@ -483,10 +486,12 @@ class XDotParser(DotParser):
                 parser = XDotAttrParser(self, attrs[attr])
                 shapes.extend(parser.parse())
 
-        if 'URL' in attrs:
-            if attrs['URL'].decode('utf-8').endswith('.args'):
-                node = Process(x - w / 2, y - h / 2, w, h)
-                node.setArguments(attrs['URL'].decode('utf-8'))
+        proc = self.json['process'].get(id.decode('utf-8'), None)
+
+        if proc:
+	        node = Process(x - w / 2, y - h / 2, w, h)
+	        node.setArguments(proc['arguments'])
+	        node.files = proc.get('files', {})
         else:
             node = Ellipse(x - w / 2, y - h / 2, w, h)
 
@@ -516,8 +521,15 @@ class XDotParser(DotParser):
             edge = Edge(points)
             self.edges.append(edge)
 
-            if 'URL' in attrs:
-                edge.file = attrs['URL'].decode('utf-8')
+            node = None
+            # write
+            if isinstance(src, Process) and 'write' in src.files:
+	            node = src.files['write'].get(dst_id.decode('utf-8'))
+            elif isinstance(dst, Process) and 'read' in dst.files:
+	            node = dst.files['read'].get(src_id.decode('utf-8'))
+
+            if node:
+	            edge.file = node['location']
 
             for e in shapes:
                 if isinstance(e, elements.PolygonShape):

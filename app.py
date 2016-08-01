@@ -77,7 +77,7 @@ class ExampleApp(QtWidgets.QMainWindow):
 
         def display(base):
             if isinstance(base, Process):
-                edit.setText(open('/tmp/graph/' + base.arguments).read())
+	            edit.setText(" ".join(base.arguments))
             elif isinstance(base, Edge) and base.file:
                 edit.setText(open('/tmp/graph/' + base.file, 'rb').read().decode('utf-8', 'ignore'))
 
