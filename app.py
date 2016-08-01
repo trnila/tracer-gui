@@ -20,7 +20,7 @@ class Widget(QtWidgets.QGraphicsView):
     def __init__(self):
         super().__init__()
 
-        parser = XDotParser(open("graph2/graph.xdot").read().encode('utf-8'))
+        parser = XDotParser(open("/tmp/graph/graph.xdot").read().encode('utf-8'))
         self.graph = parser.parse()
 
         self.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -77,9 +77,9 @@ class ExampleApp(QtWidgets.QMainWindow):
 
         def display(base):
             if isinstance(base, Process):
-                edit.setText(open('graph2/' + base.arguments).read())
+                edit.setText(open('/tmp/graph/' + base.arguments).read())
             elif isinstance(base, Edge) and base.file:
-                edit.setText(open('graph2/' + base.file).read())
+                edit.setText(open('/tmp/graph/' + base.file).read())
 
         graph.onSelected.connect(display)
 
