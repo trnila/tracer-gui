@@ -424,7 +424,7 @@ class XDotParser(DotParser):
         lexer = DotLexer(buf=xdotcode)
         DotParser.__init__(self, lexer)
 
-        self.json = json.load(open('/tmp/graph/graph.json', 'r'))
+        self.json = json.load(open('/tmp/data.json', 'r'))
 
         self.nodes = []
         self.edges = []
@@ -486,12 +486,12 @@ class XDotParser(DotParser):
                 parser = XDotAttrParser(self, attrs[attr])
                 shapes.extend(parser.parse())
 
-        proc = self.json['process'].get(id.decode('utf-8'), None)
+        proc = self.json.get(id.decode('utf-8'), None)
 
         if proc:
-	        node = Process(x - w / 2, y - h / 2, w, h)
-	        node.setArguments(proc['arguments'])
-	        node.files = proc.get('files', {})
+            node = Process(x - w / 2, y - h / 2, w, h)
+            node.setArguments(proc.get('arguments', []))
+            node.files = proc.get('read', {})
         else:
             node = Ellipse(x - w / 2, y - h / 2, w, h)
 
@@ -521,15 +521,10 @@ class XDotParser(DotParser):
             edge = Edge(points)
             self.edges.append(edge)
 
-            node = None
-            # write
-            if isinstance(src, Process) and 'write' in src.files:
-	            node = src.files['write'].get(dst_id.decode('utf-8'))
-            elif isinstance(dst, Process) and 'read' in dst.files:
-	            node = dst.files['read'].get(src_id.decode('utf-8'))
-
-            if node:
-	            edge.file = node['location']
+            if isinstance(dst, Process):
+                edge.file = src_id
+            else:
+                edge.file = dst_id
 
             for e in shapes:
                 if isinstance(e, elements.PolygonShape):

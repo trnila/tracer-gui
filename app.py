@@ -1,3 +1,5 @@
+import json
+
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import pyqtSignal
@@ -20,7 +22,32 @@ class Widget(QtWidgets.QGraphicsView):
     def __init__(self):
         super().__init__()
 
-        parser = XDotParser(open("/tmp/graph/graph.xdot").read().encode('utf-8'))
+        data = json.load(open("/tmp/data.json"))
+
+        str = "digraph A {\n"
+        for pid, process in data.items():
+            str += "%d [label=\"%s\"];\n" % (int(pid), process['executable'])  # FIXME: escape
+
+            if process['parent'] > 0:
+                str += "%d -> %d;\n" % (process['parent'], int(pid))
+
+            for name, id in process['read'].items():
+                str += "\"%s\" [label=\"%s\"];\n" % (id, name)  # FIXME: escape
+                str += "\"%s\" -> %d;\n" % (id, int(pid))
+
+            for name, id in process['write'].items():
+                str += "\"%s\" [label=\"%s\"];\n" % (id, name)  # FIXME: escape
+                str += "%d -> \"%s\";\n" % (int(pid), id)
+
+        str += "\n}"
+
+        with open("/tmp/a.dot", "w") as f:
+            f.write(str)
+
+        import os
+        os.system("sh -c 'dot -Txdot /tmp/a.dot > /tmp/a.xdot'")
+
+        parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'))
         self.graph = parser.parse()
 
         self.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -79,7 +106,7 @@ class ExampleApp(QtWidgets.QMainWindow):
             if isinstance(base, Process):
 	            edit.setText(" ".join(base.arguments))
             elif isinstance(base, Edge) and base.file:
-                edit.setText(open('/tmp/graph/' + base.file, 'rb').read().decode('utf-8', 'ignore'))
+                edit.setText(open(base.file, 'rb').read().decode('utf-8', 'ignore'))
 
         graph.onSelected.connect(display)
 
