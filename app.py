@@ -10,7 +10,6 @@ from PyQt5.QtWidgets import QGraphicsItem
 from PyQt5.QtWidgets import QGraphicsScene
 from PyQt5.QtWidgets import QGraphicsView
 from PyQt5.QtWidgets import QHeaderView
-from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtWidgets import QTextEdit
@@ -99,11 +98,11 @@ class ExampleApp(QtWidgets.QMainWindow):
         graph = Widget()
         self.setCentralWidget(graph)
 
-        dock = QDockWidget("Content", self)
-        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
+        dock1 = QDockWidget("Content", self)
+        dock1.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
         edit = QTextEdit()
-        dock.setWidget(edit)
-        self.addDockWidget(Qt.BottomDockWidgetArea, dock)
+        dock1.setWidget(edit)
+        self.addDockWidget(Qt.BottomDockWidgetArea, dock1)
 
         dock2 = QDockWidget("Environments", self)
         dock2.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
@@ -117,7 +116,13 @@ class ExampleApp(QtWidgets.QMainWindow):
         dock2.setWidget(table)
         self.addDockWidget(Qt.BottomDockWidgetArea, dock2)
 
+        dock1.hide()
+        dock2.hide()
+
         def display(base):
+            dock1.hide()
+            dock2.hide()
+
             if isinstance(base, Process):
                 edit.setText(" ".join(base.arguments))
                 table.setRowCount(len(base.env))
@@ -128,14 +133,18 @@ class ExampleApp(QtWidgets.QMainWindow):
                     table.setItem(row, 0, QTableWidgetItem(key))
                     table.setItem(row, 1, QTableWidgetItem(value))
                     row += 1
+
+                dock1.show()
+                dock2.show()
             elif isinstance(base, Edge) and base.file:
                 edit.setText(open(base.file, 'rb').read().decode('utf-8', 'ignore'))
+                dock1.show()
 
         graph.onSelected.connect(display)
 
-        dock2 = QDockWidget("test", self)
-        dock2.setWidget(QPushButton("Info", dock2))
-        self.addDockWidget(Qt.RightDockWidgetArea, dock2)
+        # dock2 = QDockWidget("test", self)
+        # dock2.setWidget(QPushButton("Info", dock2))
+        # self.addDockWidget(Qt.RightDockWidgetArea, dock2)
 
 
 def main():
