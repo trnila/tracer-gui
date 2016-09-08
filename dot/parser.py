@@ -492,6 +492,7 @@ class XDotParser(DotParser):
             node = Process(x - w / 2, y - h / 2, w, h)
             node.setArguments(proc.get('arguments', []))
             node.files = proc.get('read', {})
+            node.env = proc.get('env', {})
         else:
             node = Ellipse(x - w / 2, y - h / 2, w, h)
 

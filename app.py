@@ -9,7 +9,10 @@ from PyQt5.QtWidgets import QDockWidget
 from PyQt5.QtWidgets import QGraphicsItem
 from PyQt5.QtWidgets import QGraphicsScene
 from PyQt5.QtWidgets import QGraphicsView
+from PyQt5.QtWidgets import QHeaderView
 from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QTableWidget
+from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtWidgets import QTextEdit
 
 from dot.parser import XDotParser
@@ -102,9 +105,29 @@ class ExampleApp(QtWidgets.QMainWindow):
         dock.setWidget(edit)
         self.addDockWidget(Qt.BottomDockWidgetArea, dock)
 
+        dock2 = QDockWidget("Environments", self)
+        dock2.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
+        table = QTableWidget()
+        table.setColumnCount(2)
+        table.setHorizontalHeaderItem(0, QTableWidgetItem("Variable"))
+        table.setHorizontalHeaderItem(1, QTableWidgetItem("Value"))
+        table.verticalHeader().setVisible(False)
+        table.horizontalHeader().setStretchLastSection(True)
+        table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        dock2.setWidget(table)
+        self.addDockWidget(Qt.BottomDockWidgetArea, dock2)
+
         def display(base):
             if isinstance(base, Process):
-	            edit.setText(" ".join(base.arguments))
+                edit.setText(" ".join(base.arguments))
+                table.setRowCount(len(base.env))
+                table.clearContents()
+
+                row = 0
+                for key, value in base.env.items():
+                    table.setItem(row, 0, QTableWidgetItem(key))
+                    table.setItem(row, 1, QTableWidgetItem(value))
+                    row += 1
             elif isinstance(base, Edge) and base.file:
                 edit.setText(open(base.file, 'rb').read().decode('utf-8', 'ignore'))
 
