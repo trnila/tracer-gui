@@ -494,6 +494,13 @@ class XDotParser(DotParser):
             node.files = proc.get('read', {})
         else:
             node = Ellipse(x - w / 2, y - h / 2, w, h)
+            node.filename = None
+
+            for pid, proc in self.json.items():
+                for type in ["read", "write"]:
+                    key = id.decode('utf-8')
+                    if key in proc[type]:
+                        node.filename = proc[type][key]
 
         self.node_by_name[id] = node
         if shapes:
@@ -521,10 +528,10 @@ class XDotParser(DotParser):
             edge = Edge(points)
             self.edges.append(edge)
 
-            if isinstance(dst, Process):
-                edge.file = src_id
-            else:
-                edge.file = dst_id
+            if isinstance(dst, Process) and not isinstance(src, Process):
+                edge.file = src.filename
+            elif not isinstance(dst, Process):
+                edge.file = dst.filename
 
             for e in shapes:
                 if isinstance(e, elements.PolygonShape):

@@ -31,12 +31,12 @@ class Widget(QtWidgets.QGraphicsView):
             if process['parent'] > 0:
                 str += "%d -> %d;\n" % (process['parent'], int(pid))
 
-            for name, id in process['read'].items():
-                str += "\"%s\" [label=\"%s\"];\n" % (id, name)  # FIXME: escape
+            for id, name in process['read'].items():
+                str += "\"%s\" [label=\"%s\"];\n" % (id, id)  # FIXME: escape
                 str += "\"%s\" -> %d;\n" % (id, int(pid))
 
-            for name, id in process['write'].items():
-                str += "\"%s\" [label=\"%s\"];\n" % (id, name)  # FIXME: escape
+            for id, name in process['write'].items():
+                str += "\"%s\" [label=\"%s\"];\n" % (id, id)  # FIXME: escape
                 str += "%d -> \"%s\";\n" % (int(pid), id)
 
         str += "\n}"
