@@ -1,4 +1,4 @@
-import json
+import sys
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
@@ -16,29 +16,40 @@ from PyQt5.QtWidgets import QTextEdit
 
 from dot.parser import XDotParser
 from nodes import Base, Process, Edge
+from tracer.TracedData import TracedData
 
 
 class Widget(QtWidgets.QGraphicsView):
     onSelected = pyqtSignal(Base)
 
-    def __init__(self):
+    def __init__(self, data):
         super().__init__()
 
-        data = json.load(open("/tmp/data.json"))
-
         str = "digraph A {\n"
-        for pid, process in data.items():
+        for pid, process in data.data.items():
             str += "%d [label=\"%s\"];\n" % (int(pid), process['executable'])  # FIXME: escape
 
             if process['parent'] > 0:
                 str += "%d -> %d;\n" % (process['parent'], int(pid))
 
+            def format(fd):
+                if 'file' in fd:
+                    return fd['file']
+
+                if 'src' in fd:
+                    return "%s:%d\n<->\n%s:%d" % (
+                        fd['src']['address'], fd['src']['port'],
+                        fd['dst']['address'], fd['dst']['port']
+                    )
+
+                return fd
+
             for id, name in process['read'].items():
-                str += "\"%s\" [label=\"%s\"];\n" % (id, id)  # FIXME: escape
+                str += "\"%s\" [label=\"%s\"];\n" % (id, format(name))  # FIXME: escape
                 str += "\"%s\" -> %d;\n" % (id, int(pid))
 
             for id, name in process['write'].items():
-                str += "\"%s\" [label=\"%s\"];\n" % (id, id)  # FIXME: escape
+                str += "\"%s\" [label=\"%s\"];\n" % (id, format(name))  # FIXME: escape
                 str += "%d -> \"%s\";\n" % (int(pid), id)
 
         str += "\n}"
@@ -49,7 +60,7 @@ class Widget(QtWidgets.QGraphicsView):
         import os
         os.system("sh -c 'dot -Txdot /tmp/a.dot > /tmp/a.xdot'")
 
-        parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'))
+        parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'), data)
         self.graph = parser.parse()
 
         self.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -95,7 +106,12 @@ class Widget(QtWidgets.QGraphicsView):
 class ExampleApp(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super(ExampleApp, self).__init__(parent)
-        graph = Widget()
+
+        dir = sys.argv[1] if len(sys.argv) >= 2 else '/tmp/report'
+        data = TracedData(dir)
+        data.load()
+
+        graph = Widget(data)
         self.setCentralWidget(graph)
 
         dock1 = QDockWidget("Content", self)
@@ -137,7 +153,7 @@ class ExampleApp(QtWidgets.QMainWindow):
                 dock1.show()
                 dock2.show()
             elif isinstance(base, Edge) and base.file:
-                edit.setText(open(base.file, 'rb').read().decode('utf-8', 'ignore'))
+                edit.setText(data.read_file(base.file['content']).decode('utf-8', 'ignore'))
                 dock1.show()
 
         graph.onSelected.connect(display)

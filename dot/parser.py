@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import colorsys
-import json
 import sys
 
 from dot import elements
@@ -420,11 +419,11 @@ class DotParser(Parser):
 class XDotParser(DotParser):
     XDOTVERSION = '1.7'
 
-    def __init__(self, xdotcode):
+    def __init__(self, xdotcode, json):
         lexer = DotLexer(buf=xdotcode)
         DotParser.__init__(self, lexer)
 
-        self.json = json.load(open('/tmp/data.json', 'r'))
+        self.json = json
 
         self.nodes = []
         self.edges = []
@@ -486,7 +485,7 @@ class XDotParser(DotParser):
                 parser = XDotAttrParser(self, attrs[attr])
                 shapes.extend(parser.parse())
 
-        proc = self.json.get(id.decode('utf-8'), None)
+        proc = self.json.data.get(id.decode('utf-8'), None)
 
         if proc:
             node = Process(x - w / 2, y - h / 2, w, h)
