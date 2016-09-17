@@ -42,6 +42,9 @@ class Widget(QtWidgets.QGraphicsView):
                         fd['dst']['address'], fd['dst']['port']
                     )
 
+                if fd['type'] == 'pipe':
+                    return 'pipe:[%s]' % fd['inode']
+
                 return fd
 
             for id, name in process['read'].items():
