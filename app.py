@@ -1,4 +1,5 @@
 import sys
+from io import StringIO
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
@@ -14,6 +15,7 @@ from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtWidgets import QTextEdit
 
+from DotWriter import DotWriter
 from dot.parser import XDotParser
 from nodes import Base, Process, Edge
 from tracer.TracedData import TracedData
@@ -25,19 +27,22 @@ class Widget(QtWidgets.QGraphicsView):
     def __init__(self, data):
         super().__init__()
 
-        str = "digraph A {\n"
+        str = StringIO()
+        dot_writer = DotWriter(str)
+        dot_writer.begin()
+
         for pid, process in data.data.items():
-            str += "%d [label=\"%s\"];\n" % (int(pid), process['executable'])  # FIXME: escape
+            dot_writer.write_node(pid, process['executable'])
 
             if process['parent'] > 0:
-                str += "%d -> %d;\n" % (process['parent'], int(pid))
+                dot_writer.write_edge(process['parent'], pid)
 
             def format(fd):
                 if 'file' in fd:
                     return fd['file']
 
                 if 'src' in fd:
-                    return "%s:%d\n<->\n%s:%d" % (
+                    return "%s:%d\\n<->\\n%s:%d" % (
                         fd['src']['address'], fd['src']['port'],
                         fd['dst']['address'], fd['dst']['port']
                     )
@@ -48,17 +53,17 @@ class Widget(QtWidgets.QGraphicsView):
                 return fd
 
             for id, name in process['read'].items():
-                str += "\"%s\" [label=\"%s\"];\n" % (id, format(name))  # FIXME: escape
-                str += "\"%s\" -> %d;\n" % (id, int(pid))
+                dot_writer.write_node(id, format(name))
+                dot_writer.write_edge(id, pid)
 
             for id, name in process['write'].items():
-                str += "\"%s\" [label=\"%s\"];\n" % (id, format(name))  # FIXME: escape
-                str += "%d -> \"%s\";\n" % (int(pid), id)
+                dot_writer.write_node(id, format(name))
+                dot_writer.write_edge(pid, id)
 
-        str += "\n}"
+        dot_writer.end()
 
         with open("/tmp/a.dot", "w") as f:
-            f.write(str)
+            f.write(str.getvalue())
 
         import os
         os.system("sh -c 'dot -Txdot /tmp/a.dot > /tmp/a.xdot'")
