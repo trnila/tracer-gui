@@ -20,7 +20,6 @@ from dot.parser import XDotParser
 from nodes import Base, Process, Edge
 from TracedData import TracedData
 
-
 class Widget(QtWidgets.QGraphicsView):
     onSelected = pyqtSignal(Base)
 
@@ -51,6 +50,7 @@ class Widget(QtWidgets.QGraphicsView):
                     return 'pipe:[%s]' % fd['inode']
 
                 return fd
+
 
             for id, name in process['read'].items():
                 dot_writer.write_node(id, format(name))
