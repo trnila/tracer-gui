@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import QTextEdit
 from DotWriter import DotWriter
 from dot.parser import XDotParser
 from nodes import Base, Process, Edge
-from tracer.TracedData import TracedData
+from TracedData import TracedData
 
 
 class Widget(QtWidgets.QGraphicsView):
