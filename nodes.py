@@ -94,9 +94,6 @@ class Ellipse(Base):
 
 
 class Process(Ellipse):
-    def __init__(self, *__args):
+    def __init__(self, process, *__args):
         super().__init__(*__args)
-        self.arguments = []
-
-    def setArguments(self, args):
-        self.arguments = args
+        self.process = process
