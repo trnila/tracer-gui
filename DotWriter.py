@@ -1,12 +1,21 @@
 class DotWriter:
     def __init__(self, out):
         self.out = out
+        self.subgraph_id = 0
 
     def begin(self):
         self.out.write("digraph G {\n")
 
     def end(self):
         self.out.write("}\n")
+
+    def begin_subgraph(self):
+        self.out.write("subgraph cluster_%d {\n" % self.subgraph_id)
+        self.subgraph_id += 1
+
+    def end_subgraph(self):
+        self.out.write("}\n")
+
 
     def write_node(self, id, title):
         self.out.write('\t"%s" [label="%s"];\n' % (self._escape(id), self._escape(title)))

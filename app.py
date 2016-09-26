@@ -1,10 +1,8 @@
 import sys
-from io import StringIO
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QColor
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QDockWidget
 from PyQt5.QtWidgets import QGraphicsItem
@@ -15,61 +13,15 @@ from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtWidgets import QTextEdit
 
-from DotWriter import DotWriter
-from dot.parser import XDotParser
-from nodes import Base, Process, Edge
 from TracedData import TracedData
+from nodes import Base, Process, Edge
+
 
 class Widget(QtWidgets.QGraphicsView):
     onSelected = pyqtSignal(Base)
 
     def __init__(self, data):
         super().__init__()
-
-        str = StringIO()
-        dot_writer = DotWriter(str)
-        dot_writer.begin()
-
-        for pid, process in data.data.items():
-            dot_writer.write_node(pid, process['executable'])
-
-            if process['parent'] > 0:
-                dot_writer.write_edge(process['parent'], pid)
-
-            def format(fd):
-                if 'file' in fd:
-                    return fd['file']
-
-                if 'src' in fd:
-                    return "%s:%d\\n<->\\n%s:%d" % (
-                        fd['src']['address'], fd['src']['port'],
-                        fd['dst']['address'], fd['dst']['port']
-                    )
-
-                if fd['type'] == 'pipe':
-                    return 'pipe:[%s]' % fd['inode']
-
-                return fd
-
-
-            for id, name in process['read'].items():
-                dot_writer.write_node(id, format(name))
-                dot_writer.write_edge(id, pid)
-
-            for id, name in process['write'].items():
-                dot_writer.write_node(id, format(name))
-                dot_writer.write_edge(pid, id)
-
-        dot_writer.end()
-
-        with open("/tmp/a.dot", "w") as f:
-            f.write(str.getvalue())
-
-        import os
-        os.system("sh -c 'dot -Txdot /tmp/a.dot > /tmp/a.xdot'")
-
-        parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'), data)
-        self.graph = parser.parse()
 
         self.setDragMode(QGraphicsView.ScrollHandDrag)
         self.setMouseTracking(True)
@@ -80,9 +32,7 @@ class Widget(QtWidgets.QGraphicsView):
         self.setScene(self.p)
         self.show()
 
-        def toQColor(color):
-            return QColor(color[0] * 255, color[1] * 255, color[2] * 255, color[3] * 255)
-
+        self.graph = data.create_graph()
         for type in [self.graph.nodes, self.graph.edges]:
             for node in type:
                 if isinstance(node, QGraphicsItem):
@@ -115,9 +65,10 @@ class ExampleApp(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super(ExampleApp, self).__init__(parent)
 
-        dir = sys.argv[1] if len(sys.argv) >= 2 else '/tmp/report'
-        data = TracedData(dir)
-        data.load()
+        data = TracedData()
+
+        for dir in sys.argv[1:]:
+            data.load(dir)
 
         graph = Widget(data)
         self.setCentralWidget(graph)
@@ -148,12 +99,12 @@ class ExampleApp(QtWidgets.QMainWindow):
             dock2.hide()
 
             if isinstance(base, Process):
-                edit.setText(" ".join(base.arguments))
-                table.setRowCount(len(base.env))
+                edit.setText(" ".join(base.process['arguments']))
+                table.setRowCount(len(base.process['env']))
                 table.clearContents()
 
                 row = 0
-                for key, value in base.env.items():
+                for key, value in base.process['env'].items():
                     table.setItem(row, 0, QTableWidgetItem(key))
                     table.setItem(row, 1, QTableWidgetItem(value))
                     row += 1
@@ -161,15 +112,10 @@ class ExampleApp(QtWidgets.QMainWindow):
                 dock1.show()
                 dock2.show()
             elif isinstance(base, Edge) and base.file:
-                edit.setText(data.read_file(base.file['content']).decode('utf-8', 'ignore'))
+                edit.setText(base.system.read_file(base.file['content']).decode('utf-8', 'ignore'))
                 dock1.show()
 
         graph.onSelected.connect(display)
-
-        # dock2 = QDockWidget("test", self)
-        # dock2.setWidget(QPushButton("Info", dock2))
-        # self.addDockWidget(Qt.RightDockWidgetArea, dock2)
-
 
 def main():
     app = QtWidgets.QApplication([])

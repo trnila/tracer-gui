@@ -293,7 +293,6 @@ class XDotAttrParser:
             self.shapes.append(elements.PolygonShape(self.pen, points, filled=True))
         self.shapes.append(elements.PolygonShape(self.pen, points))
 
-
 class DotParser(Parser):
     def __init__(self, lexer):
         Parser.__init__(self, lexer)
@@ -321,6 +320,8 @@ class DotParser(Parser):
             if self.lookahead.type == ID:
                 id = self.lookahead.text
                 self.consume()
+
+            self.handle_subgraph(id)
         if self.lookahead.type == LCURLY:
             self.consume()
             while self.lookahead.type != RCURLY:
@@ -432,6 +433,10 @@ class XDotParser(DotParser):
         self.top_graph = True
         self.width = 0
         self.height = 0
+        self.currentSystem = -1
+
+    def handle_subgraph(self, id):
+        self.currentSystem += 1
 
     def handle_graph(self, attrs):
         if self.top_graph:
@@ -485,13 +490,14 @@ class XDotParser(DotParser):
                 parser = XDotAttrParser(self, attrs[attr])
                 shapes.extend(parser.parse())
 
-        proc = self.json.data.get(id.decode('utf-8'), None)
+        proc = None
+        try:
+            proc = self.json.get_system(self.currentSystem).get_process_by_pid(int(id.decode('utf-8')))
+        except:
+            pass
 
         if proc:
-            node = Process(x - w / 2, y - h / 2, w, h)
-            node.setArguments(proc.get('arguments', []))
-            node.files = proc.get('read', {})
-            node.env = proc.get('env', {})
+            node = Process(proc, x - w / 2, y - h / 2, w, h)
         else:
             node = Ellipse(x - w / 2, y - h / 2, w, h)
 
@@ -522,9 +528,15 @@ class XDotParser(DotParser):
             self.edges.append(edge)
 
             if isinstance(dst, Process) and not isinstance(src, Process):
-                edge.file = self.json[dst_id.decode('utf-8')]["read"][src_id.decode('utf-8')]
+                edge.file = \
+                self.json.get_system(self.currentSystem).get_process_by_pid(int(dst_id.decode('utf-8')))["read"][
+                    src_id.decode('utf-8')]
+                edge.system = self.json.get_system(self.currentSystem)
             elif isinstance(src, Process) and not isinstance(dst, Process):
-                edge.file = self.json[src_id.decode('utf-8')]["write"][dst_id.decode('utf-8')]
+                edge.file = \
+                self.json.get_system(self.currentSystem).get_process_by_pid(int(src_id.decode('utf-8')))["write"][
+                    dst_id.decode('utf-8')]
+                edge.system = self.json.get_system(self.currentSystem)
 
             for e in shapes:
                 if isinstance(e, elements.PolygonShape):
