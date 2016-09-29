@@ -18,7 +18,7 @@ import sys
 
 from dot import elements
 from dot.Pen import Pen
-from nodes import Ellipse, Edge, Process, Polygon
+from nodes import Ellipse, Edge, Process, Polygon, Text
 from .lexer import ParseError, DotLexer
 
 EOF = -1
@@ -266,8 +266,8 @@ class XDotAttrParser:
         if self.pen.overline:
             sys.stderr.write('warning: overlined text not supported yet\n')
 
-    def handle_text(self, x, y, j, w, t):
-        self.shapes.append(elements.TextShape(self.pen, x, y, j, w, t))
+    def handle_text(self, x, y, j, w, text):
+        self.shapes.append(Text(text, x, y, j, w, self.pen.fontname))
 
     def handle_ellipse(self, x0, y0, w, h, filled=False):
         if filled:
@@ -505,8 +505,8 @@ class XDotParser(DotParser):
         if shapes:
             self.nodes.append(node)
             for shape in shapes:
-                if isinstance(shape, elements.TextShape):
-                    node.setLabel(shape.t, shape.x, shape.y, shape.pen.fontsize, shape.w, shape.pen.fontname)
+                if isinstance(shape, Text):
+                    node.setLabel(shape)
 
     def handle_edge(self, src_id, dst_id, attrs):
         try:

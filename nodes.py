@@ -31,17 +31,8 @@ class Base(QGraphicsItemGroup):
         else:
             g.setPen(color)
 
-    def setLabel(self, str, x, y, size, w, fontname):
-        font = QFont(fontname)
-
-        fontMetrics = QFontMetrics(font)
-        scale = float(fontMetrics.width(str)) / w
-        font.setPointSizeF(font.pointSizeF() / scale)
-
-        item = QGraphicsTextItem(str)
-        item.setFont(font)
-        item.setPos(x - w / 2, y - fontMetrics.height())
-        self.addToGroup(item)
+    def setLabel(self, text):
+        self.addToGroup(text)
 
     def setPen(self, color):
         for i in self.childItems():
@@ -102,6 +93,18 @@ class Polygon(Base):
         p = QGraphicsPolygonItem(polygon)
         self.addToGroup(p)
 
+class Text(QGraphicsTextItem):
+    def __init__(self, str, x, y, size, w, fontname):
+        super().__init__()
+        font = QFont(fontname)
+
+        fontMetrics = QFontMetrics(font)
+        scale = float(fontMetrics.width(str)) / w
+        font.setPointSizeF(font.pointSizeF() / scale)
+
+        self.setFont(font)
+        self.setPos(x - w / 2, y - fontMetrics.height())
+        self.setPlainText(str)
 
 class Process(Ellipse):
     def __init__(self, process, *__args):
