@@ -499,7 +499,8 @@ class XDotParser(DotParser):
         if proc:
             node = Process(proc, x - w / 2, y - h / 2, w, h)
         else:
-            node = Resource(None, x - w / 2, y - h / 2, w, h)
+            node = Resource(self.json.get_system(self.currentSystem).get_resource(id.decode('utf-8')), x - w / 2,
+                            y - h / 2, w, h)
 
         self.node_by_name[id] = node
         if shapes:
@@ -524,7 +525,7 @@ class XDotParser(DotParser):
             src = self.node_by_name[src_id]
             dst = self.node_by_name[dst_id]
 
-            edge = Edge(points)
+            edge = Edge(src, dst, points)
             self.edges.append(edge)
 
             try:

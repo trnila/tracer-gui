@@ -57,9 +57,11 @@ class MyPath(QGraphicsPathItem):
 
 
 class Edge(Base):
-    def __init__(self, points):
+    def __init__(self, src, dst, points):
         super().__init__()
         self.file = None
+        self.src = src
+        self.dst = dst
 
         path = QPainterPath()
         path.moveTo(points[0][0], points[0][1])
@@ -74,6 +76,8 @@ class Edge(Base):
     def add(self, points):
         self.addToGroup(points)
 
+    def __repr__(self):
+        return "%s -> %s" % (self.src, self.dst)
 
 class Ellipse(Base):
     def __init__(self, *__args):
@@ -124,4 +128,4 @@ class Resource(Ellipse):
         self.neighbours = []
 
     def __repr__(self):
-        return self.process['id']
+        return self.resource['id']
