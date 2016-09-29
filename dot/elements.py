@@ -176,6 +176,7 @@ class Edge(Element):
 
 
 class Graph:
-	def __init__(self, nodes, edges):
+	def __init__(self, nodes, edges, shapes):
 		self.nodes = nodes
 		self.edges = edges
+		self.shapes = shapes

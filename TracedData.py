@@ -45,7 +45,7 @@ class TracedData:
         dot_writer.begin()
 
         for system in self.systems:
-            dot_writer.begin_subgraph()
+            dot_writer.begin_subgraph("node #x")
             for pid, process in system.processes.items():
                 dot_writer.write_node(pid, process['executable'])
 
