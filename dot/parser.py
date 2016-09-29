@@ -527,16 +527,19 @@ class XDotParser(DotParser):
             edge = Edge(points)
             self.edges.append(edge)
 
-            if isinstance(dst, Process) and not isinstance(src, Process):
-                edge.file = \
-                self.json.get_system(self.currentSystem).get_process_by_pid(int(dst_id.decode('utf-8')))["read"][
-                    src_id.decode('utf-8')]
-                edge.system = self.json.get_system(self.currentSystem)
-            elif isinstance(src, Process) and not isinstance(dst, Process):
-                edge.file = \
-                self.json.get_system(self.currentSystem).get_process_by_pid(int(src_id.decode('utf-8')))["write"][
-                    dst_id.decode('utf-8')]
-                edge.system = self.json.get_system(self.currentSystem)
+            try:
+                if isinstance(dst, Process) and not isinstance(src, Process):
+                    edge.file = \
+                    self.json.get_system(self.currentSystem).get_process_by_pid(int(dst_id.decode('utf-8')))["read"][
+                        src_id.decode('utf-8')]
+                    edge.system = self.json.get_system(self.currentSystem)
+                elif isinstance(src, Process) and not isinstance(dst, Process):
+                    edge.file = \
+                    self.json.get_system(self.currentSystem).get_process_by_pid(int(src_id.decode('utf-8')))["write"][
+                        dst_id.decode('utf-8')]
+                    edge.system = self.json.get_system(self.currentSystem)
+            except:
+                pass
 
             for e in shapes:
                 if isinstance(e, elements.PolygonShape):
