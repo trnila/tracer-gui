@@ -108,13 +108,7 @@ class ExampleApp(QtWidgets.QMainWindow):
         dock2.setWidget(table)
         self.addDockWidget(Qt.BottomDockWidgetArea, dock2)
 
-        dock1.hide()
-        dock2.hide()
-
         def display(base):
-            dock1.hide()
-            dock2.hide()
-
             if isinstance(base, Process):
                 edit.setText(" ".join(base.process['arguments']))
                 table.setRowCount(len(base.process['env']))
