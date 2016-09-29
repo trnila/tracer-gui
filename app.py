@@ -87,8 +87,9 @@ class ExampleApp(QtWidgets.QMainWindow):
                         for nei in i.neighbours:
                             nei.setVisible(False)
 
-        filter = QLineEdit(self)
-        filter.textChanged.connect(handleFilter)
+        self.filter = QLineEdit(self)
+        self.filter.setFixedWidth(self.width())
+        self.filter.textChanged.connect(handleFilter)
 
         dock1 = QDockWidget("Content", self)
         dock1.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
@@ -127,6 +128,9 @@ class ExampleApp(QtWidgets.QMainWindow):
                 dock1.show()
 
         graph.onSelected.connect(display)
+
+    def resizeEvent(self, QResizeEvent):
+        self.filter.setFixedWidth(QResizeEvent.size().width())
 
 def main():
     app = QtWidgets.QApplication([])
