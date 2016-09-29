@@ -22,6 +22,15 @@ class System:
         for id, process in data.items():
             self.processes[int(id)] = Process(process)
 
+    def all_resources(self):
+        result = {}
+        for map in [{**j['read'], **j['write']} for i, j in self.processes.items()]:
+            for id, resource in map.items():
+                result[id] = resource
+        return result
+
+
+
     def get_process_by_pid(self, pid):
         return self.processes[pid]
 
@@ -44,6 +53,15 @@ class TracedData:
         dot_writer = DotWriter(str)
         dot_writer.begin()
 
+        common = [i.all_resources() for i in self.systems]
+        dot_writer.begin_subgraph('Network')
+        for i in common:
+            for id, resource in i.items():
+                if resource['type'] == 'socket':
+                    dot_writer.write_node(id, self._format(resource))
+        dot_writer.end_subgraph()
+
+
         i = 0
         for system in self.systems:
             i += 1
@@ -54,27 +72,12 @@ class TracedData:
                 if process['parent'] > 0:
                     dot_writer.write_edge(process['parent'], pid)
 
-                def format(fd):
-                    if 'file' in fd:
-                        return fd['file']
-
-                    if 'src' in fd:
-                        return "%s:%d\\n<->\\n%s:%d" % (
-                            fd['src']['address'], fd['src']['port'],
-                            fd['dst']['address'], fd['dst']['port']
-                        )
-
-                    if fd['type'] == 'pipe':
-                        return 'pipe:[%s]' % fd['inode']
-
-                    return fd
-
                 for id, name in process['read'].items():
-                    dot_writer.write_node(id, format(name))
+                    dot_writer.write_node(id, self._format(name))
                     dot_writer.write_edge(id, pid)
 
                 for id, name in process['write'].items():
-                    dot_writer.write_node(id, format(name))
+                    dot_writer.write_node(id, self._format(name))
                     dot_writer.write_edge(pid, id)
 
             dot_writer.end_subgraph()
@@ -88,3 +91,18 @@ class TracedData:
 
         parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'), self)
         return parser.parse()
+
+    def _format(self, fd):
+        if 'file' in fd:
+            return fd['file']
+
+        if 'src' in fd:
+            return "%s:%d\\n<->\\n%s:%d" % (
+                fd['src']['address'], fd['src']['port'],
+                fd['dst']['address'], fd['dst']['port']
+            )
+
+        if fd['type'] == 'pipe':
+            return 'pipe:[%s]' % fd['inode']
+
+        return fd

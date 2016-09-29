@@ -433,7 +433,7 @@ class XDotParser(DotParser):
         self.top_graph = True
         self.width = 0
         self.height = 0
-        self.currentSystem = -1
+        self.currentSystem = -2
 
     def handle_subgraph(self, id):
         self.currentSystem += 1
