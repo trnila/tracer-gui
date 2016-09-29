@@ -9,12 +9,13 @@ from PyQt5.QtWidgets import QGraphicsItem
 from PyQt5.QtWidgets import QGraphicsScene
 from PyQt5.QtWidgets import QGraphicsView
 from PyQt5.QtWidgets import QHeaderView
+from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtWidgets import QTextEdit
 
 from TracedData import TracedData
-from nodes import Base, Process, Edge
+from nodes import Base, Process, Edge, Ellipse
 
 
 class Widget(QtWidgets.QGraphicsView):
@@ -72,6 +73,22 @@ class ExampleApp(QtWidgets.QMainWindow):
 
         graph = Widget(data)
         self.setCentralWidget(graph)
+
+        def handleFilter(query):
+            for i in graph.graph.nodes:
+                i.setVisible(True)
+                for nei in i.neighbours:
+                    nei.setVisible(True)
+
+            for i in graph.graph.nodes:
+                if isinstance(i, Ellipse):
+                    if query and query in i.label.toPlainText():
+                        i.setVisible(False)
+                        for nei in i.neighbours:
+                            nei.setVisible(False)
+
+        filter = QLineEdit(self)
+        filter.textChanged.connect(handleFilter)
 
         dock1 = QDockWidget("Content", self)
         dock1.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)

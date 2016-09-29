@@ -33,6 +33,7 @@ class Base(QGraphicsItemGroup):
 
     def setLabel(self, text):
         self.addToGroup(text)
+        self.label = text
 
     def setPen(self, color):
         for i in self.childItems():
@@ -110,3 +111,17 @@ class Process(Ellipse):
     def __init__(self, process, *__args):
         super().__init__(*__args)
         self.process = process
+        self.neighbours = []
+
+    def __repr__(self):
+        return self.process['executable']
+
+
+class Resource(Ellipse):
+    def __init__(self, resource, *__args):
+        super().__init__(*__args)
+        self.resource = resource
+        self.neighbours = []
+
+    def __repr__(self):
+        return self.process['id']

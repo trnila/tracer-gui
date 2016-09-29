@@ -18,7 +18,7 @@ import sys
 
 from dot import elements
 from dot.Pen import Pen
-from nodes import Ellipse, Edge, Process, Polygon, Text
+from nodes import Edge, Process, Polygon, Text, Resource
 from .lexer import ParseError, DotLexer
 
 EOF = -1
@@ -499,7 +499,7 @@ class XDotParser(DotParser):
         if proc:
             node = Process(proc, x - w / 2, y - h / 2, w, h)
         else:
-            node = Ellipse(x - w / 2, y - h / 2, w, h)
+            node = Resource(None, x - w / 2, y - h / 2, w, h)
 
         self.node_by_name[id] = node
         if shapes:
@@ -540,6 +540,9 @@ class XDotParser(DotParser):
                     edge.system = self.json.get_system(self.currentSystem)
             except:
                 pass
+
+            src.neighbours.append(edge)
+            dst.neighbours.append(edge)
 
             for e in shapes:
                 if isinstance(e, Polygon):
