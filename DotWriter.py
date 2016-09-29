@@ -9,8 +9,9 @@ class DotWriter:
     def end(self):
         self.out.write("}\n")
 
-    def begin_subgraph(self):
+    def begin_subgraph(self, title):
         self.out.write("subgraph cluster_%d {\n" % self.subgraph_id)
+        self.out.write("label = \"%s\";" % self._escape(title))
         self.subgraph_id += 1
 
     def end_subgraph(self):

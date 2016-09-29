@@ -33,7 +33,7 @@ class Widget(QtWidgets.QGraphicsView):
         self.show()
 
         self.graph = data.create_graph()
-        for type in [self.graph.nodes, self.graph.edges]:
+        for type in [self.graph.shapes, self.graph.nodes, self.graph.edges]:
             for node in type:
                 if isinstance(node, QGraphicsItem):
                     p.addItem(node)

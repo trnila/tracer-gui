@@ -43,6 +43,10 @@ class Base(QGraphicsItemGroup):
         item.setPos(x - w / 2, y - fontMetrics.height())
         self.addToGroup(item)
 
+    def setPen(self, color):
+        for i in self.childItems():
+            i.setPen(color)
+
     def shape(self):
         for i in self.childItems():
             if isinstance(i, MyPath):
@@ -76,12 +80,7 @@ class Edge(Base):
         self.addToGroup(p)
 
     def add(self, points):
-        polygon = QPolygonF()
-
-        for point in points.points:
-            polygon.append(QPoint(point[0], point[1]))
-            p = QGraphicsPolygonItem(polygon)
-            self.addToGroup(p)
+        self.addToGroup(points)
 
 
 class Ellipse(Base):
@@ -91,6 +90,17 @@ class Ellipse(Base):
         ellipse = QGraphicsEllipseItem(*__args)
         self.addToGroup(ellipse)
         ellipse.setAcceptHoverEvents(True)
+
+class Polygon(Base):
+    def __init__(self, points, filled = False):
+        super().__init__()
+
+        polygon = QPolygonF()
+
+        for point in points:
+            polygon.append(QPoint(point[0], point[1]))
+        p = QGraphicsPolygonItem(polygon)
+        self.addToGroup(p)
 
 
 class Process(Ellipse):

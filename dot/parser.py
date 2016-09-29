@@ -18,7 +18,7 @@ import sys
 
 from dot import elements
 from dot.Pen import Pen
-from nodes import Ellipse, Edge, Process
+from nodes import Ellipse, Edge, Process, Polygon
 from .lexer import ParseError, DotLexer
 
 EOF = -1
@@ -290,8 +290,8 @@ class XDotAttrParser:
     def handle_polygon(self, points, filled=False):
         if filled:
             # xdot uses this to mean "draw a filled shape with an outline"
-            self.shapes.append(elements.PolygonShape(self.pen, points, filled=True))
-        self.shapes.append(elements.PolygonShape(self.pen, points))
+            self.shapes.append(Polygon(points, filled=True))
+        self.shapes.append(Polygon(points))
 
 class DotParser(Parser):
     def __init__(self, lexer):
@@ -542,12 +542,12 @@ class XDotParser(DotParser):
                 pass
 
             for e in shapes:
-                if isinstance(e, elements.PolygonShape):
+                if isinstance(e, Polygon):
                     edge.add(e)
 
     def parse(self):
         DotParser.parse(self)
-        return elements.Graph(self.nodes, self.edges)
+        return elements.Graph(self.nodes, self.edges, self.shapes)
 
     def parse_node_pos(self, pos):
         x, y = pos.split(b",")
