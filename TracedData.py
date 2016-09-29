@@ -29,6 +29,14 @@ class System:
                 result[id] = resource
         return result
 
+    def get_resource(self, id):
+        for i, proc in self.processes.items():
+            for type in ['read', 'write']:
+                for j, k in proc[type].items():
+                    if id == j:
+                        return k
+        return None
+
 
 
     def get_process_by_pid(self, pid):
