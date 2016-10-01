@@ -71,7 +71,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 dock1.show()
                 dock2.show()
             elif isinstance(base, Edge) and base.file:
-                edit.setText(base.system.read_file(base.file['content']).decode('utf-8', 'ignore'))
+                edit.setText(base.system.read_file(base.file).decode('utf-8', 'ignore'))
                 dock1.show()
 
         graph.onSelected.connect(display)
