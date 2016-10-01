@@ -496,10 +496,11 @@ class XDotParser(DotParser):
         except:
             pass
 
+
         if proc:
             node = Process(proc, x - w / 2, y - h / 2, w, h)
         else:
-            node = Resource(self.json.get_system(self.currentSystem).get_resource(id.decode('utf-8')), x - w / 2,
+            node = Resource(None, x - w / 2,
                             y - h / 2, w, h)
 
         self.node_by_name[id] = node
