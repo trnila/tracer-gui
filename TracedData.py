@@ -44,6 +44,7 @@ class System:
 class TracedData:
     def __init__(self):
         self.systems = []
+        self.resources = {}
 
     def load(self, path):
         with open(os.path.join(path, 'data.json')) as file:
@@ -58,7 +59,7 @@ class TracedData:
         dot_writer.begin()
 
         all = list(itertools.chain(*[i.all_resources() for i in self.systems]))
-        network = [i for i in all if i['type'] == 'socket' and i['family'] in [socket.AF_INET, socket.AF_INET6]]
+        network = [i for i in all if 'server' in i and i['server']]
 
         dot_writer.begin_subgraph('Network')
         for sock in network:
@@ -76,6 +77,17 @@ class TracedData:
         #            dot_writer.write_node(id, self._format(resource))
         #dot_writer.end_subgraph()
 
+        mymap = {}
+
+        def _hash(addr):
+            return "%s:%s" % (addr['address'], addr['port'])
+
+        for system in self.systems:
+            for pid, process in system.processes.items():
+                for descriptor in process['descriptors']:
+                    if 'family' in descriptor and descriptor['family'] in [socket.AF_INET, socket.AF_INET6]:
+                        if '0.0.0.0' not in descriptor['local']['address']:
+                            mymap[_hash(descriptor['local'])] = pid
 
         i = 0
         for system in self.systems:
@@ -89,6 +101,10 @@ class TracedData:
 
                 for name in process['descriptors']:
                     dot_writer.write_node(self._format(name), self._format(name))
+                    self.resources[self._format(name)] = name
+
+                    if 'server' in name and name['server']:
+                        dot_writer.write_edge(pid, self._format(name))
 
                     if 'read_content' in name:
                         dot_writer.write_edge(self._format(name), pid)
@@ -97,6 +113,14 @@ class TracedData:
                         dot_writer.write_edge(pid, self._format(name))
 
             dot_writer.end_subgraph()
+
+        for system in self.systems:
+            for pid, process in system.processes.items():
+                for name in process['descriptors']:
+                    if name['type'] == 'socket' and name['family'] in [socket.AF_INET, socket.AF_INET6]:
+                        if '0.0.0.0' in name['local']['address'] and name['remote']:
+                            dot_writer.write_edge(_hash(name['local']), mymap[_hash(name['remote'])])
+
         dot_writer.end()
 
         with open("/tmp/a.dot", "w") as f:
@@ -111,6 +135,9 @@ class TracedData:
     def _format(self, fd):
         if fd['type'] == 'socket':
                 if fd['family'] in [socket.AF_INET, socket.AF_INET6] and fd['local']: # TODO: quickfix
+                    if fd['remote'] is None:
+                        return "%s:%d" % (fd['local']['address'], fd['local']['port'])
+
                     return "%s:%d\\n<->\\n%s:%d" % (
                         fd['local']['address'], fd['local']['port'],
                         fd['remote']['address'], fd['remote']['port']

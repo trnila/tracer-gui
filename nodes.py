@@ -126,6 +126,3 @@ class Resource(Ellipse):
         super().__init__(*__args)
         self.resource = resource
         self.neighbours = []
-
-    def __repr__(self):
-        return self.resource['id']
