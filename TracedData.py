@@ -1,6 +1,8 @@
 import json
 import os
+import socket
 from io import StringIO
+import itertools
 
 from DotWriter import DotWriter
 from dot.parser import XDotParser
@@ -23,11 +25,7 @@ class System:
             self.processes[int(id)] = Process(process)
 
     def all_resources(self):
-        result = {}
-        for map in [{**j['read'], **j['write']} for i, j in self.processes.items()]:
-            for id, resource in map.items():
-                result[id] = resource
-        return result
+        return list(itertools.chain(*[j['descriptors'] for i, j in self.processes.items()]))
 
     def get_resource(self, id):
         for i, proc in self.processes.items():
@@ -36,8 +34,6 @@ class System:
                     if id == j:
                         return k
         return None
-
-
 
     def get_process_by_pid(self, pid):
         return self.processes[pid]
@@ -61,13 +57,24 @@ class TracedData:
         dot_writer = DotWriter(str)
         dot_writer.begin()
 
-        common = [i.all_resources() for i in self.systems]
+        all = list(itertools.chain(*[i.all_resources() for i in self.systems]))
+        network = [i for i in all if i['type'] == 'socket' and i['family'] in [socket.AF_INET, socket.AF_INET6]]
+
         dot_writer.begin_subgraph('Network')
-        for i in common:
-            for id, resource in i.items():
-                if resource['type'] == 'socket':
-                    dot_writer.write_node(id, self._format(resource))
+        for sock in network:
+            dot_writer.write_node(self._format(sock), self._format(sock))
         dot_writer.end_subgraph()
+
+
+
+        print(all)
+
+        #dot_writer.begin_subgraph('Network')
+        #for i in common:
+        #    for id, resource in i.items():
+        #        if resource['type'] == 'socket':
+        #            dot_writer.write_node(id, self._format(resource))
+        #dot_writer.end_subgraph()
 
 
         i = 0
@@ -80,13 +87,14 @@ class TracedData:
                 if process['parent'] > 0:
                     dot_writer.write_edge(process['parent'], pid)
 
-                for id, name in process['read'].items():
-                    dot_writer.write_node(id, self._format(name))
-                    dot_writer.write_edge(id, pid)
+                for name in process['descriptors']:
+                    dot_writer.write_node(self._format(name), self._format(name))
 
-                for id, name in process['write'].items():
-                    dot_writer.write_node(id, self._format(name))
-                    dot_writer.write_edge(pid, id)
+                    if 'read_content' in name:
+                        dot_writer.write_edge(self._format(name), pid)
+
+                    if 'write_content' in name:
+                        dot_writer.write_edge(pid, self._format(name))
 
             dot_writer.end_subgraph()
         dot_writer.end()
@@ -101,16 +109,16 @@ class TracedData:
         return parser.parse()
 
     def _format(self, fd):
-        if 'file' in fd:
-            return fd['file']
+        if fd['type'] == 'socket':
+                if fd['family'] in [socket.AF_INET, socket.AF_INET6] and fd['local']: # TODO: quickfix
+                    return "%s:%d\\n<->\\n%s:%d" % (
+                        fd['local']['address'], fd['local']['port'],
+                        fd['remote']['address'], fd['remote']['port']
+                    )
+                return "socket: %d" % fd['family']
 
-        if 'src' in fd:
-            return "%s:%d\\n<->\\n%s:%d" % (
-                fd['src']['address'], fd['src']['port'],
-                fd['dst']['address'], fd['dst']['port']
-            )
+        if fd['type'] == 'file':
+            return fd['path']
 
         if fd['type'] == 'pipe':
-            return 'pipe:[%s]' % fd['inode']
-
-        return fd
+            return 'pipe' # TODO: add identification of pipe
