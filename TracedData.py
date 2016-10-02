@@ -100,6 +100,9 @@ class TracedData:
                     dot_writer.write_edge(process['parent'], pid)
 
                 for name in process['descriptors']:
+                    if name['type'] == 'socket' and 'server' in name and not name['server']:
+                        continue
+
                     dot_writer.write_node(self._id(name, system), self._format(name))
                     self.resources[self._id(name, system)] = name
 
@@ -114,12 +117,16 @@ class TracedData:
 
             dot_writer.end_subgraph()
 
+        sys = 0
         for system in self.systems:
             for pid, process in system.processes.items():
                 for name in process['descriptors']:
                     if name['type'] == 'socket' and name['family'] in [socket.AF_INET, socket.AF_INET6]:
                         if '0.0.0.0' in name['local']['address'] and name['remote']:
-                            dot_writer.write_edge(_hash(name['local']), mymap[_hash(name['remote'])])
+                            dot_writer.write_edge(_hash(name['local']), mymap[_hash(name['remote'])], file=name['write_content'], system=sys)
+                            dot_writer.write_edge(mymap[_hash(name['remote'])], _hash(name['local']), file=name['read_content'], system=sys)
+
+            sys += 1
 
         dot_writer.end()
 
