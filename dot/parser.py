@@ -531,14 +531,10 @@ class XDotParser(DotParser):
 
             try:
                 if isinstance(dst, Process) and not isinstance(src, Process):
-                    edge.file = \
-                    self.json.get_system(self.currentSystem).get_process_by_pid(int(dst_id.decode('utf-8')))["read"][
-                        src_id.decode('utf-8')]
+                    edge.file = self.json.resources[src_id.decode('utf-8')]['read_content']
                     edge.system = self.json.get_system(self.currentSystem)
                 elif isinstance(src, Process) and not isinstance(dst, Process):
-                    edge.file = \
-                    self.json.get_system(self.currentSystem).get_process_by_pid(int(src_id.decode('utf-8')))["write"][
-                        dst_id.decode('utf-8')]
+                    edge.file = self.json.resources[dst_id.decode('utf-8')]['write_content']
                     edge.system = self.json.get_system(self.currentSystem)
             except:
                 pass

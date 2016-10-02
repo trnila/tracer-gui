@@ -100,17 +100,17 @@ class TracedData:
                     dot_writer.write_edge(process['parent'], pid)
 
                 for name in process['descriptors']:
-                    dot_writer.write_node(self._format(name), self._format(name))
-                    self.resources[self._format(name)] = name
+                    dot_writer.write_node(self._id(name, system), self._format(name))
+                    self.resources[self._id(name, system)] = name
 
                     if 'server' in name and name['server']:
-                        dot_writer.write_edge(pid, self._format(name))
+                        dot_writer.write_edge(pid, self._id(name, system))
 
                     if 'read_content' in name:
-                        dot_writer.write_edge(self._format(name), pid)
+                        dot_writer.write_edge(self._id(name, system), pid)
 
                     if 'write_content' in name:
-                        dot_writer.write_edge(pid, self._format(name))
+                        dot_writer.write_edge(pid, self._id(name, system))
 
             dot_writer.end_subgraph()
 
@@ -132,6 +132,18 @@ class TracedData:
         parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'), self)
         return parser.parse()
 
+    def _id(self, fd, system):
+        if fd['type'] == 'file':
+            return "%s_%s" % (id(system), fd['path'])
+
+        if fd['type'] == 'pipe':
+            return "%s_%s" % (id(system), fd['pipe_id'])
+
+        if fd['type'] == 'socket' and fd['family'] not in [socket.AF_INET, socket.AF_INET6]:
+            return "%s_%s" % (id(system), fd['socket_id'])
+
+        return self._format(fd)
+
     def _format(self, fd):
         if fd['type'] == 'socket':
                 if fd['family'] in [socket.AF_INET, socket.AF_INET6] and fd['local']: # TODO: quickfix
@@ -142,10 +154,10 @@ class TracedData:
                         fd['local']['address'], fd['local']['port'],
                         fd['remote']['address'], fd['remote']['port']
                     )
-                return "socket: %d" % fd['family']
+                return "socket: %d #%d" % (fd['family'], fd['socket_id'])
 
         if fd['type'] == 'file':
             return fd['path']
 
         if fd['type'] == 'pipe':
-            return 'pipe' # TODO: add identification of pipe
+            return 'pipe: %d' % fd['pipe_id']

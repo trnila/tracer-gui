@@ -57,6 +57,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(Qt.BottomDockWidgetArea, dock2)
 
         def display(base):
+            edit.setText("")
             if isinstance(base, Process):
                 edit.setText(" ".join(base.process['arguments']))
                 table.setRowCount(len(base.process['env']))
@@ -73,6 +74,7 @@ class MainWindow(QtWidgets.QMainWindow):
             elif isinstance(base, Edge) and base.file:
                 edit.setText(base.system.read_file(base.file).decode('utf-8', 'ignore'))
                 dock1.show()
+                print(base.file)
 
         graph.onSelected.connect(display)
 
