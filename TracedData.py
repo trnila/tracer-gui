@@ -1,8 +1,8 @@
+import itertools
 import json
 import os
 import socket
 from io import StringIO
-import itertools
 
 from DotWriter import DotWriter
 from dot.parser import XDotParser
@@ -41,6 +41,7 @@ class System:
     def read_file(self, id):
         return open(self.resource_path + "/" + id, 'rb').read()
 
+
 class TracedData:
     def __init__(self):
         self.systems = []
@@ -66,17 +67,6 @@ class TracedData:
             dot_writer.write_node(self._format(sock), self._format(sock))
         dot_writer.end_subgraph()
 
-
-
-        print(all)
-
-        #dot_writer.begin_subgraph('Network')
-        #for i in common:
-        #    for id, resource in i.items():
-        #        if resource['type'] == 'socket':
-        #            dot_writer.write_node(id, self._format(resource))
-        #dot_writer.end_subgraph()
-
         mymap = {}
 
         def _hash(addr):
@@ -100,7 +90,7 @@ class TracedData:
                     dot_writer.write_edge(process['parent'], pid)
 
                 for name in process['descriptors']:
-                    if name['type'] == 'socket' and 'server' in name and not name['server']:
+                    if name['type'] == 'socket' and 'server' in name and not name['server'] and len(self.systems) > 1:
                         continue
 
                     dot_writer.write_node(self._id(name, system), self._format(name))
@@ -110,10 +100,16 @@ class TracedData:
                         dot_writer.write_edge(pid, self._id(name, system))
 
                     if 'read_content' in name:
-                        dot_writer.write_edge(self._id(name, system), pid)
+                        import uuid
+                        data = uuid.uuid4().hex
+                        self.resources[data] = name['read_content']
+                        dot_writer.write_edge(self._id(name, system), pid, data=data)
 
                     if 'write_content' in name:
-                        dot_writer.write_edge(pid, self._id(name, system))
+                        import uuid
+                        data = uuid.uuid4().hex
+                        self.resources[data] = name['write_content']
+                        dot_writer.write_edge(pid, self._id(name, system), data=data)
 
             dot_writer.end_subgraph()
 
@@ -123,8 +119,13 @@ class TracedData:
                 for name in process['descriptors']:
                     if name['type'] == 'socket' and name['family'] in [socket.AF_INET, socket.AF_INET6]:
                         if '0.0.0.0' in name['local']['address'] and name['remote']:
-                            dot_writer.write_edge(_hash(name['local']), mymap[_hash(name['remote'])], file=name['write_content'], system=sys)
-                            dot_writer.write_edge(mymap[_hash(name['remote'])], _hash(name['local']), file=name['read_content'], system=sys)
+                            try:
+                                dot_writer.write_edge(_hash(name['local']), mymap[_hash(name['remote'])],
+                                                      file=name['write_content'], system=sys)
+                                dot_writer.write_edge(mymap[_hash(name['remote'])], _hash(name['local']),
+                                                      file=name['read_content'], system=sys)
+                            except:
+                                print("err")
 
             sys += 1
 
