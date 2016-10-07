@@ -34,9 +34,13 @@ class MainWindow(QtWidgets.QMainWindow):
                         for nei in i.neighbours:
                             nei.setVisible(False)
 
+        def handleEnter():
+            graph.apply_filter(self.filter.text())
+
         self.filter = QLineEdit(self)
         self.filter.setFixedWidth(self.width())
         self.filter.textChanged.connect(handleFilter)
+        self.filter.returnPressed.connect(handleEnter)
 
         dock1 = QDockWidget("Content", self)
         dock1.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)

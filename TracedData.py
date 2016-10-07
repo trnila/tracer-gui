@@ -54,7 +54,7 @@ class TracedData:
     def get_system(self, id):
         return self.systems[id]
 
-    def create_graph(self):
+    def create_graph(self, filter=None):
         str = StringIO()
         dot_writer = DotWriter(str)
         dot_writer.begin()
@@ -90,6 +90,9 @@ class TracedData:
                     dot_writer.write_edge(process['parent'], pid)
 
                 for name in process['descriptors']:
+                    if filter and filter in self._format(name):
+                        continue
+
                     if name['type'] == 'socket' and 'server' in name and not name['server'] and len(self.systems) > 1:
                         continue
 
