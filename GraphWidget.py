@@ -13,21 +13,30 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
     def __init__(self, data):
         super().__init__()
+        self.data = data
 
         self.setDragMode(QGraphicsView.ScrollHandDrag)
         self.setMouseTracking(True)
 
-        self.p = p = QGraphicsScene(self)
+        self.p = QGraphicsScene(self)
         self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.HighQualityAntialiasing)
 
         self.setScene(self.p)
         self.show()
 
-        self.graph = data.create_graph()
+        self.create_graph(filter="/usr/lib")
+
+    def create_graph(self, filter=None):
+        self.graph = self.data.create_graph(filter)
+        self.p.clear()
         for type in [self.graph.shapes, self.graph.nodes, self.graph.edges]:
             for node in type:
                 if isinstance(node, QGraphicsItem):
-                    p.addItem(node)
+                    self.p.addItem(node)
+
+    def apply_filter(self, query):
+        self.create_graph(filter=query)
+
 
     def wheelEvent(self, evt):
         scale = 1.2 if evt.angleDelta().y() > 0 else 0.8
