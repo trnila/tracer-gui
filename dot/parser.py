@@ -536,9 +536,9 @@ class XDotParser(DotParser):
                 if 'file' in attrs:
                     edge.file = attrs['file'].decode('utf-8')
                 if isinstance(dst, Process) and not isinstance(src, Process):
-                    edge.file = self.json.resources[src_id.decode('utf-8')]['read_content']
+                    edge.file = self.json.resources[attrs['data'].decode('utf-8')]
                 elif isinstance(src, Process) and not isinstance(dst, Process):
-                    edge.file = self.json.resources[dst_id.decode('utf-8')]['write_content']
+                    edge.file = self.json.resources[attrs['data'].decode('utf-8')]
             except:
                 pass
 
