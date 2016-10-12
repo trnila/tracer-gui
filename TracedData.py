@@ -114,6 +114,12 @@ class TracedData:
                         self.resources[data] = name['write_content']
                         dot_writer.write_edge(pid, self._id(name, system), data=data)
 
+                    if 'mmap' in name and len(name['mmap']):
+                        import uuid
+                        data = uuid.uuid4().hex
+                        self.resources[data] = name
+                        dot_writer.write_biedge(pid, self._id(name, system), data=data)
+
             dot_writer.end_subgraph()
 
         sys = 0

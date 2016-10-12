@@ -24,5 +24,9 @@ class DotWriter:
         args = ", ".join(["%s=\"%s\"" % (i, self._escape(j)) for i, j in kwargs.items()])
         self.out.write('\t"%s" -> "%s" [%s];\n' % (self._escape(src), self._escape(dst), args))
 
+    def write_biedge(self, node1, node2, **kwargs):
+        kwargs['dir'] = 'none'
+        self.write_edge(node1, node2, **kwargs)
+
     def _escape(self, s):
         return str(s).replace('"', '\\"')
