@@ -1,9 +1,12 @@
+import json
 import sys
 
+import mmap
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLineEdit, QDockWidget, QTextEdit, QTableWidget, QTableWidgetItem, QHeaderView
 
+import utils
 from GraphWidget import GraphWidget
 from TracedData import TracedData
 from nodes import Ellipse, Process, Edge
@@ -73,12 +76,47 @@ class MainWindow(QtWidgets.QMainWindow):
                     table.setItem(row, 1, QTableWidgetItem(value))
                     row += 1
 
-                dock1.show()
-                dock2.show()
             elif isinstance(base, Edge) and base.file:
-                edit.setText(base.system.read_file(base.file).decode('utf-8', 'ignore'))
-                dock1.show()
-                print(base.file)
+                value = ""
+                if isinstance(base.file, str):
+                    value = base.system.read_file(base.file).decode('utf-8', 'ignore')
+                else:
+
+                    def f(item):
+                        prots = {
+                            mmap.PROT_READ: 'PROT_READ',
+                            mmap.PROT_WRITE: 'PROT_WRITE',
+                            mmap.PROT_EXEC: 'PROT_EXEC'
+                        }
+
+                        flags = {
+                            mmap.MAP_ANONYMOUS: 'MAP_ANONYMOUS',
+                            mmap.MAP_DENYWRITE: 'MAP_DENYWRITE',
+                            mmap.MAP_EXECUTABLE: 'MAP_EXECUTABLE',
+                            mmap.MAP_PRIVATE: 'MAP_PRIVATE',
+                            mmap.MAP_SHARED: 'MAP_SHARED'
+                        }
+
+                        def g(val, list):
+                            opts = []
+
+                            for value, str in list.items():
+                                if val & value:
+                                    opts.append(str)
+
+                            return ' | '.join(opts)
+
+                        return "0x%X - 0x%X (%s) %s %s" % (
+                            item['address'],
+                            item['address'] + item['length'],
+                            utils.format_bytes(item['length']),
+                            g(item['prot'], prots),
+                            g(item['flags'], flags)
+                        )
+
+                    value = "\n".join(map(f, base.file['mmap']))
+
+                edit.setText(value)
 
         graph.onSelected.connect(display)
 
