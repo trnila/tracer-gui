@@ -546,7 +546,7 @@ class XDotParser(DotParser):
             dst.neighbours.append(edge)
 
             for e in shapes:
-                if isinstance(e, Polygon):
+                if isinstance(e, Polygon) or isinstance(e, Text):
                     edge.add(e)
 
     def parse(self):
