@@ -4,6 +4,7 @@ import os
 import socket
 from io import StringIO
 
+import maps
 from DotWriter import DotWriter
 from dot.parser import XDotParser
 
@@ -85,6 +86,10 @@ class TracedData:
             dot_writer.begin_subgraph("node #%d" % i)
             for pid, process in system.processes.items():
                 dot_writer.write_node(pid, process['executable'])
+
+                # kills
+                for kill in process['kills']:
+                    dot_writer.write_edge(pid, kill['pid'], label=maps.signals[kill['signal']])
 
                 if process['parent'] > 0:
                     dot_writer.write_edge(process['parent'], pid)
