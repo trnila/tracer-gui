@@ -9,9 +9,122 @@ from DotWriter import DotWriter
 from dot.parser import XDotParser
 
 
-class Process:
-    def __init__(self, data):
+def _id(fd, system):
+    if fd['type'] == 'file':
+        return "%s_%s" % (system.resource_path, fd['path'])
+
+    if fd['type'] == 'pipe':
+        return "%s_%s" % (id(system), fd['pipe_id'])
+
+    if fd['type'] == 'socket' and fd['domain'] in [socket.AF_INET, socket.AF_INET6]:
+        try:
+            parts = sorted([
+                fd['local']['address'],
+                str(fd['local']['port']),
+                fd['remote']['address'],
+                str(fd['remote']['port']),
+            ])
+
+            return "socket_%s" % (":".join(parts))
+        except:
+            pass
+
+    return _format(fd)
+
+
+def _format(fd):
+    if fd['type'] == 'socket':
+        if fd['domain'] == socket.AF_UNIX:
+            return "unix:%s" % (fd['remote'])
+
+        if fd['domain'] in [socket.AF_INET, socket.AF_INET6] and fd['local']:  # TODO: quickfix
+            if fd['remote'] is None:
+                return "%s:%d" % (fd['local']['address'], fd['local']['port'])
+
+            return "%s:%d\\n<->\\n%s:%d" % (
+                fd['local']['address'], fd['local']['port'],
+                fd['remote']['address'], fd['remote']['port']
+            )
+        return "socket: %s #%s" % (fd['domain'], fd['socket_id'])
+
+    if fd['type'] == 'file':
+        return fd['path']
+
+    if fd['type'] == 'pipe':
+        return 'pipe: %d' % fd['pipe_id']
+
+
+class Action:
+    def __init__(self, system):
+        self.system = system
+
+    def generate(self, dot_writer):
+        pass
+
+
+class ProcessCreated(Action):
+    def __init__(self, system, process, parent=None):
+        super().__init__(system)
+        self.process = process
+        self.parent = parent
+
+    def generate(self, dot_writer):
+        dot_writer.write_node(self.process['pid'], self.process['executable'])
+
+        if self.parent:
+            dot_writer.write_edge(self.parent['pid'], self.process['pid'])
+
+class Des(Action):
+    def __init__(self, descriptor):
+        super().__init__(None)
+        self.descriptor = descriptor
+
+    def generate(self, dot_writer):
+        raise NotImplemented()
+
+
+class ReadDes(Des):
+    def generate(self, dot_writer):
+        dot_writer.write_edge(
+            _id(self.descriptor, self.descriptor.process.system),
+            self.descriptor.process['pid'],
+            data=self.descriptor['read_content'],
+        )
+
+
+class WriteDes(Des):
+    def generate(self, dot_writer):
+        dot_writer.write_edge(
+            self.descriptor.process['pid'],
+            _id(self.descriptor, self.descriptor.process.system),
+            data=self.descriptor['write_content'],
+        )
+
+class Mmap(Des):
+    def generate(self, dot_writer):
+        dot_writer.write_biedge(
+            self.descriptor.process['pid'],
+            _id(self.descriptor, self.descriptor.process.system),
+            data=self.descriptor
+        )
+
+class Descriptor:
+    def __init__(self, process, data):
         self.data = data
+        self.process = process
+
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __contains__(self, item):
+        return item in self.data
+
+class Process:
+    def __init__(self, system, data):
+        self.system = system
+        self.data = data
+
+        self.data['descriptors'] = [Descriptor(self, i) for i in self.data['descriptors']]
 
     def __getitem__(self, item):
         return self.data[item]
@@ -23,7 +136,7 @@ class System:
         self.resource_path = resource_path
 
         for id, process in data.items():
-            self.processes[int(id)] = Process(process)
+            self.processes[int(id)] = Process(self, process)
 
     def all_resources(self):
         return list(itertools.chain(*[j['descriptors'] for i, j in self.processes.items()]))
@@ -86,14 +199,12 @@ class TracedData:
             i += 1
             dot_writer.begin_subgraph("node #%d" % i)
             for pid, process in system.processes.items():
-                dot_writer.write_node(pid, process['executable'])
+                parent = system.get_process_by_pid(process['parent']) if process['parent'] > 0 else None
+                ProcessCreated(system, process, parent).generate(dot_writer)
 
                 # kills
                 for kill in process['kills']:
                     dot_writer.write_edge(pid, kill['pid'], label=maps.signals[kill['signal']])
-
-                if process['parent'] > 0:
-                    dot_writer.write_edge(process['parent'], pid)
 
                 for name in process['descriptors']:
                     if filter and filter in self._format(name):
@@ -105,17 +216,17 @@ class TracedData:
                     dot_writer.write_node(self._id(name, system), self._format(name))
                     self.resources[self._id(name, system)] = name
 
-                    if 'server' in name and name['server']:
-                        dot_writer.write_edge(pid, self._id(name, system))
+                    #if 'server' in name and name['server']:
+                    #    dot_writer.write_edge(pid, self._id(name, system))
 
                     if 'read_content' in name:
-                        dot_writer.write_edge(self._id(name, system), pid, data=name['read_content'])
+                        ReadDes(name).generate(dot_writer)
 
                     if 'write_content' in name:
-                        dot_writer.write_edge(pid, self._id(name, system), data=name['write_content'])
+                        WriteDes(name).generate(dot_writer)
 
                     if 'mmap' in name and len(name['mmap']):
-                        dot_writer.write_biedge(pid, self._id(name, system), data=name)
+                        Mmap(name).generate(dot_writer)
 
             dot_writer.end_subgraph()
 
@@ -147,44 +258,7 @@ class TracedData:
         return parser.parse()
 
     def _id(self, fd, system):
-        if fd['type'] == 'file':
-            return "%s_%s" % (id(system), fd['path'])
-
-        if fd['type'] == 'pipe':
-            return "%s_%s" % (id(system), fd['pipe_id'])
-
-        if fd['type'] == 'socket' and fd['domain'] in [socket.AF_INET, socket.AF_INET6]:
-            try:
-                parts = sorted([
-                    fd['local']['address'],
-                    str(fd['local']['port']),
-                    fd['remote']['address'],
-                    str(fd['remote']['port']),
-                ])
-
-                return "socket_%s" % (":".join(parts))
-            except:
-                pass
-
-        return self._format(fd)
+        return _id(fd, system)
 
     def _format(self, fd):
-        if fd['type'] == 'socket':
-            if fd['domain'] == socket.AF_UNIX:
-                return "unix:%s" % (fd['remote'])
-
-            if fd['domain'] in [socket.AF_INET, socket.AF_INET6] and fd['local']:  # TODO: quickfix
-                if fd['remote'] is None:
-                    return "%s:%d" % (fd['local']['address'], fd['local']['port'])
-
-                return "%s:%d\\n<->\\n%s:%d" % (
-                    fd['local']['address'], fd['local']['port'],
-                    fd['remote']['address'], fd['remote']['port']
-                )
-            return "socket: %s #%s" % (fd['domain'], fd['socket_id'])
-
-        if fd['type'] == 'file':
-            return fd['path']
-
-        if fd['type'] == 'pipe':
-            return 'pipe: %d' % fd['pipe_id']
+       return _format(fd)
