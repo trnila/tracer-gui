@@ -109,22 +109,13 @@ class TracedData:
                         dot_writer.write_edge(pid, self._id(name, system))
 
                     if 'read_content' in name:
-                        import uuid
-                        data = uuid.uuid4().hex
-                        self.resources[data] = name['read_content']
-                        dot_writer.write_edge(self._id(name, system), pid, data=data)
+                        dot_writer.write_edge(self._id(name, system), pid, data=name['read_content'])
 
                     if 'write_content' in name:
-                        import uuid
-                        data = uuid.uuid4().hex
-                        self.resources[data] = name['write_content']
-                        dot_writer.write_edge(pid, self._id(name, system), data=data)
+                        dot_writer.write_edge(pid, self._id(name, system), data=name['write_content'])
 
                     if 'mmap' in name and len(name['mmap']):
-                        import uuid
-                        data = uuid.uuid4().hex
-                        self.resources[data] = name
-                        dot_writer.write_biedge(pid, self._id(name, system), data=data)
+                        dot_writer.write_biedge(pid, self._id(name, system), data=name)
 
             dot_writer.end_subgraph()
 
@@ -152,7 +143,7 @@ class TracedData:
         import os
         os.system("sh -c 'dot -Txdot /tmp/a.dot > /tmp/a.xdot'")
 
-        parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'), self)
+        parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'), self, dot_writer.bag)
         return parser.parse()
 
     def _id(self, fd, system):

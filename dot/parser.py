@@ -420,11 +420,12 @@ class DotParser(Parser):
 class XDotParser(DotParser):
     XDOTVERSION = '1.7'
 
-    def __init__(self, xdotcode, json):
+    def __init__(self, xdotcode, json, bag):
         lexer = DotLexer(buf=xdotcode)
         DotParser.__init__(self, lexer)
 
         self.json = json
+        self.bag = bag
 
         self.nodes = []
         self.edges = []
@@ -536,9 +537,9 @@ class XDotParser(DotParser):
                 if 'file' in attrs:
                     edge.file = attrs['file'].decode('utf-8')
                 if isinstance(dst, Process) and not isinstance(src, Process):
-                    edge.file = self.json.resources[attrs['data'].decode('utf-8')]
+                    edge.file = self.bag.get(int(attrs['data_id'].decode('utf-8')))
                 elif isinstance(src, Process) and not isinstance(dst, Process):
-                    edge.file = self.json.resources[attrs['data'].decode('utf-8')]
+                    edge.file = self.bag.get(int(attrs['data_id'].decode('utf-8')))
             except:
                 pass
 
