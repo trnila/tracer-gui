@@ -131,7 +131,7 @@ class TracedData:
         for system in self.systems:
             for pid, process in system.processes.items():
                 for name in process['descriptors']:
-                    if name['type'] == 'socket' and name['family'] in [socket.AF_INET, socket.AF_INET6]:
+                    if name['type'] == 'socket' and name['domain'] in [socket.AF_INET, socket.AF_INET6]:
                         if '0.0.0.0' in name['local']['address'] and name['remote']:
                             try:
                                 dot_writer.write_edge(_hash(name['local']), mymap[_hash(name['remote'])],
@@ -161,22 +161,25 @@ class TracedData:
         if fd['type'] == 'pipe':
             return "%s_%s" % (id(system), fd['pipe_id'])
 
-        if fd['type'] == 'socket' and fd['family'] not in [socket.AF_INET, socket.AF_INET6]:
+        if fd['type'] == 'socket' and fd['domain'] not in [socket.AF_INET, socket.AF_INET6]:
             return "%s_%s" % (id(system), fd['socket_id'])
 
         return self._format(fd)
 
     def _format(self, fd):
         if fd['type'] == 'socket':
-                if fd['family'] in [socket.AF_INET, socket.AF_INET6] and fd['local']: # TODO: quickfix
-                    if fd['remote'] is None:
-                        return "%s:%d" % (fd['local']['address'], fd['local']['port'])
+            if fd['domain'] == socket.AF_UNIX:
+                return "unix:%s" % (fd['remote'])
 
-                    return "%s:%d\\n<->\\n%s:%d" % (
-                        fd['local']['address'], fd['local']['port'],
-                        fd['remote']['address'], fd['remote']['port']
-                    )
-                return "socket: %d #%d" % (fd['family'], fd['socket_id'])
+            if fd['domain'] in [socket.AF_INET, socket.AF_INET6] and fd['local']:  # TODO: quickfix
+                if fd['remote'] is None:
+                    return "%s:%d" % (fd['local']['address'], fd['local']['port'])
+
+                return "%s:%d\\n<->\\n%s:%d" % (
+                    fd['local']['address'], fd['local']['port'],
+                    fd['remote']['address'], fd['remote']['port']
+                )
+            return "socket: %s #%s" % (fd['domain'], fd['socket_id'])
 
         if fd['type'] == 'file':
             return fd['path']
