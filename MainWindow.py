@@ -50,7 +50,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         dock2 = QDockWidget("Environments", self)
         dock2.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
-        table = QTableWidget()
+        self.environments = table = QTableWidget()
         table.setColumnCount(2)
         table.setHorizontalHeaderItem(0, QTableWidgetItem("Variable"))
         table.setHorizontalHeaderItem(1, QTableWidgetItem("Value"))

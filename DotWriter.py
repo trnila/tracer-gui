@@ -31,19 +31,26 @@ class DotWriter:
     def end_subgraph(self):
         self.out.write("}\n")
 
-    def write_node(self, id, title):
-        self.out.write('\t"%s" [label="%s"];\n' % (self._escape(id), self._escape(title)))
+    def write_node(self, id, title, data=None, **kwargs):
+        kwargs['label'] = title
+        self.out.write('\t"%s" [%s];\n' % (self._escape(id), self._build_args(data, kwargs)))
 
     def write_edge(self, src, dst, data=None, **kwargs):
-        if data is not None:
-            kwargs['data_id'] = self.bag.write(data)
-
-        args = ", ".join(["%s=\"%s\"" % (i, self._escape(j)) for i, j in kwargs.items()])
-        self.out.write('\t"%s" -> "%s" [%s];\n' % (self._escape(src), self._escape(dst), args))
+        self.out.write(
+            '\t"%s" -> "%s" [%s];\n' %
+            (self._escape(src), self._escape(dst), self._build_args(data, kwargs))
+        )
 
     def write_biedge(self, node1, node2, **kwargs):
         kwargs['dir'] = 'none'
         self.write_edge(node1, node2, **kwargs)
+
+    def _build_args(self, data, kwargs):
+        if data is not None:
+            kwargs['data_id'] = self.bag.write(data)
+
+        return ", ".join(["%s=\"%s\"" % (i, self._escape(j)) for i, j in kwargs.items()])
+
 
     def _escape(self, s):
         return str(s).replace('"', '\\"')

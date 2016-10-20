@@ -116,9 +116,10 @@ class Process(Ellipse):
         super().__init__(*__args)
         self.process = process
         self.neighbours = []
+        self.action = process
 
     def __repr__(self):
-        return self.process['executable']
+        return self.process.process['executable']
 
 
 class Resource(Ellipse):

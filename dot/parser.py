@@ -493,7 +493,7 @@ class XDotParser(DotParser):
 
         proc = None
         try:
-            proc = self.json.get_system(self.currentSystem).get_process_by_pid(int(id.decode('utf-8')))
+            proc = self.bag.get(int(attrs['data_id'].decode('utf-8')))
         except:
             pass
 

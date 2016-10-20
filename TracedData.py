@@ -4,6 +4,8 @@ import os
 import socket
 from io import StringIO
 
+from PyQt5.QtWidgets import QTableWidgetItem
+
 import maps
 import utils
 from DotWriter import DotWriter
@@ -73,10 +75,22 @@ class ProcessCreated(Action):
         self.parent = parent
 
     def generate(self, dot_writer):
-        dot_writer.write_node(self.process['pid'], self.process['executable'])
+        dot_writer.write_node(self.process['pid'], self.process['executable'], data=self)
 
         if self.parent:
             dot_writer.write_edge(self.parent['pid'], self.process['pid'])
+
+    def gui(self, window):
+        window.content.setText(' '.join(self.process['arguments']))
+
+        window.environments.setRowCount(len(self.process['env']))
+        window.environments.clearContents()
+
+        row = 0
+        for key, value in self.process['env'].items():
+            window.environments.setItem(row, 0, QTableWidgetItem(key))
+            window.environments.setItem(row, 1, QTableWidgetItem(value))
+            row += 1
 
 class Des(Action):
     def __init__(self, descriptor):
