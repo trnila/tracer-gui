@@ -1,15 +1,12 @@
-import json
 import sys
 
-import mmap
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLineEdit, QDockWidget, QTextEdit, QTableWidget, QTableWidgetItem, QHeaderView
 
-import utils
 from GraphWidget import GraphWidget
 from TracedData import TracedData
-from nodes import Ellipse, Process, Edge
+from nodes import Ellipse
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -47,7 +44,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         dock1 = QDockWidget("Content", self)
         dock1.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
-        edit = QTextEdit()
+        self.content = edit = QTextEdit()
         dock1.setWidget(edit)
         self.addDockWidget(Qt.BottomDockWidgetArea, dock1)
 
@@ -65,58 +62,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         def display(base):
             edit.setText("")
-            if isinstance(base, Process):
-                edit.setText(" ".join(base.process['arguments']))
-                table.setRowCount(len(base.process['env']))
-                table.clearContents()
-
-                row = 0
-                for key, value in base.process['env'].items():
-                    table.setItem(row, 0, QTableWidgetItem(key))
-                    table.setItem(row, 1, QTableWidgetItem(value))
-                    row += 1
-
-            elif isinstance(base, Edge) and base.file:
-                value = ""
-                if isinstance(base.file, str):
-                    value = base.system.read_file(base.file).decode('utf-8', 'ignore')
-                else:
-
-                    def f(item):
-                        prots = {
-                            mmap.PROT_READ: 'PROT_READ',
-                            mmap.PROT_WRITE: 'PROT_WRITE',
-                            mmap.PROT_EXEC: 'PROT_EXEC'
-                        }
-
-                        flags = {
-                            mmap.MAP_ANONYMOUS: 'MAP_ANONYMOUS',
-                            mmap.MAP_DENYWRITE: 'MAP_DENYWRITE',
-                            mmap.MAP_EXECUTABLE: 'MAP_EXECUTABLE',
-                            mmap.MAP_PRIVATE: 'MAP_PRIVATE',
-                            mmap.MAP_SHARED: 'MAP_SHARED'
-                        }
-
-                        def g(val, list):
-                            opts = []
-
-                            for value, str in list.items():
-                                if val & value:
-                                    opts.append(str)
-
-                            return ' | '.join(opts)
-
-                        return "0x%X - 0x%X (%s) %s %s" % (
-                            item['address'],
-                            item['address'] + item['length'],
-                            utils.format_bytes(item['length']),
-                            g(item['prot'], prots),
-                            g(item['flags'], flags)
-                        )
-
-                    value = "\n".join(map(f, base.file['mmap']))
-
-                edit.setText(value)
+            if getattr(base, 'action', None):
+                base.action.gui(self)
 
         graph.onSelected.connect(display)
 

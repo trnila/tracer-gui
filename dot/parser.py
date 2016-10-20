@@ -531,15 +531,7 @@ class XDotParser(DotParser):
             self.edges.append(edge)
 
             try:
-                edge.system = self.json.get_system(self.currentSystem)
-                if 'system' in attrs:
-                    edge.system = self.json.get_system(int(attrs['system'].decode('utf-8')))
-                if 'file' in attrs:
-                    edge.file = attrs['file'].decode('utf-8')
-                if isinstance(dst, Process) and not isinstance(src, Process):
-                    edge.file = self.bag.get(int(attrs['data_id'].decode('utf-8')))
-                elif isinstance(src, Process) and not isinstance(dst, Process):
-                    edge.file = self.bag.get(int(attrs['data_id'].decode('utf-8')))
+                edge.action = self.bag.get(int(attrs['data_id'].decode('utf-8')))
             except:
                 pass
 

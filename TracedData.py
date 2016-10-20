@@ -5,6 +5,7 @@ import socket
 from io import StringIO
 
 import maps
+import utils
 from DotWriter import DotWriter
 from dot.parser import XDotParser
 
@@ -61,6 +62,9 @@ class Action:
     def generate(self, dot_writer):
         pass
 
+    def gui(self, window):
+        pass
+
 
 class ProcessCreated(Action):
     def __init__(self, system, process, parent=None):
@@ -79,8 +83,15 @@ class Des(Action):
         super().__init__(None)
         self.descriptor = descriptor
 
+    def _get_file_id(self):
+        raise NotImplementedError()
+
     def generate(self, dot_writer):
-        raise NotImplemented()
+        raise NotImplementedError()
+
+    def gui(self, window):
+        content = self.descriptor.process.system.read_file(self._get_file_id())
+        window.content.setText(content.decode('utf-8', 'ignore'))
 
 
 class ReadDes(Des):
@@ -88,8 +99,11 @@ class ReadDes(Des):
         dot_writer.write_edge(
             _id(self.descriptor, self.descriptor.process.system),
             self.descriptor.process['pid'],
-            data=self.descriptor['read_content'],
+            data=self,
         )
+
+    def _get_file_id(self):
+        return self.descriptor['read_content']
 
 
 class WriteDes(Des):
@@ -97,16 +111,56 @@ class WriteDes(Des):
         dot_writer.write_edge(
             self.descriptor.process['pid'],
             _id(self.descriptor, self.descriptor.process.system),
-            data=self.descriptor['write_content'],
+            data=self,
         )
+
+    def _get_file_id(self):
+        return self.descriptor['write_content']
 
 class Mmap(Des):
     def generate(self, dot_writer):
         dot_writer.write_biedge(
             self.descriptor.process['pid'],
             _id(self.descriptor, self.descriptor.process.system),
-            data=self.descriptor
+            data=self
         )
+
+    def gui(self, window):
+        def f(item):
+            import mmap
+            prots = {
+                mmap.PROT_READ: 'PROT_READ',
+                mmap.PROT_WRITE: 'PROT_WRITE',
+                mmap.PROT_EXEC: 'PROT_EXEC'
+            }
+
+            flags = {
+                mmap.MAP_ANONYMOUS: 'MAP_ANONYMOUS',
+                mmap.MAP_DENYWRITE: 'MAP_DENYWRITE',
+                mmap.MAP_EXECUTABLE: 'MAP_EXECUTABLE',
+                mmap.MAP_PRIVATE: 'MAP_PRIVATE',
+                mmap.MAP_SHARED: 'MAP_SHARED'
+            }
+
+            def g(val, list):
+                opts = []
+
+                for value, str in list.items():
+                    if val & value:
+                        opts.append(str)
+
+                return ' | '.join(opts)
+
+            return "0x%X - 0x%X (%s) %s %s" % (
+                item['address'],
+                item['address'] + item['length'],
+                utils.format_bytes(item['length']),
+                g(item['prot'], prots),
+                g(item['flags'], flags)
+            )
+
+        value = "\n".join(map(f, self.descriptor['mmap']))
+        window.content.setText(value)
 
 class Descriptor:
     def __init__(self, process, data):
