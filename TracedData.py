@@ -117,6 +117,7 @@ class WriteDes(Des):
     def _get_file_id(self):
         return self.descriptor['write_content']
 
+
 class Mmap(Des):
     def generate(self, dot_writer):
         dot_writer.write_biedge(
@@ -126,40 +127,16 @@ class Mmap(Des):
         )
 
     def gui(self, window):
-        def f(item):
-            import mmap
-            prots = {
-                mmap.PROT_READ: 'PROT_READ',
-                mmap.PROT_WRITE: 'PROT_WRITE',
-                mmap.PROT_EXEC: 'PROT_EXEC'
-            }
-
-            flags = {
-                mmap.MAP_ANONYMOUS: 'MAP_ANONYMOUS',
-                mmap.MAP_DENYWRITE: 'MAP_DENYWRITE',
-                mmap.MAP_EXECUTABLE: 'MAP_EXECUTABLE',
-                mmap.MAP_PRIVATE: 'MAP_PRIVATE',
-                mmap.MAP_SHARED: 'MAP_SHARED'
-            }
-
-            def g(val, list):
-                opts = []
-
-                for value, str in list.items():
-                    if val & value:
-                        opts.append(str)
-
-                return ' | '.join(opts)
-
+        def _format_mmap(item):
             return "0x%X - 0x%X (%s) %s %s" % (
                 item['address'],
                 item['address'] + item['length'],
                 utils.format_bytes(item['length']),
-                g(item['prot'], prots),
-                g(item['flags'], flags)
+                maps.mmap_prots.format(item['prot']),
+                maps.mmap_maps.format(item['flags']),
             )
 
-        value = "\n".join(map(f, self.descriptor['mmap']))
+        value = "\n".join(map(_format_mmap, self.descriptor['mmap']))
         window.content.setText(value)
 
 class Descriptor:
