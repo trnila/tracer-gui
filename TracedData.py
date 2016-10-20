@@ -62,10 +62,11 @@ class TracedData:
 
         all = list(itertools.chain(*[i.all_resources() for i in self.systems]))
         network = [i for i in all if 'server' in i and i['server']]
+        network = [i for i in all if i['type'] == 'socket' and 'domain' in i and i['domain'] in [socket.AF_INET, socket.AF_INET6]]
 
         dot_writer.begin_subgraph('Network')
         for sock in network:
-            dot_writer.write_node(self._format(sock), self._format(sock))
+            dot_writer.write_node(self._id(sock, 1), self._format(sock))
         dot_writer.end_subgraph()
 
         mymap = {}
@@ -98,8 +99,8 @@ class TracedData:
                     if filter and filter in self._format(name):
                         continue
 
-                    if name['type'] == 'socket' and 'server' in name and not name['server'] and len(self.systems) > 1:
-                        continue
+                    #if name['type'] == 'socket' and 'server' in name and not name['server'] and len(self.systems) > 1:
+                     #   continue
 
                     dot_writer.write_node(self._id(name, system), self._format(name))
                     self.resources[self._id(name, system)] = name
@@ -161,8 +162,18 @@ class TracedData:
         if fd['type'] == 'pipe':
             return "%s_%s" % (id(system), fd['pipe_id'])
 
-        if fd['type'] == 'socket' and fd['domain'] not in [socket.AF_INET, socket.AF_INET6]:
-            return "%s_%s" % (id(system), fd['socket_id'])
+        if fd['type'] == 'socket' and fd['domain'] in [socket.AF_INET, socket.AF_INET6]:
+            try:
+                parts = sorted([
+                    fd['local']['address'],
+                    str(fd['local']['port']),
+                    fd['remote']['address'],
+                    str(fd['remote']['port']),
+                ])
+
+                return "socket_%s" % (":".join(parts))
+            except:
+                pass
 
         return self._format(fd)
 
