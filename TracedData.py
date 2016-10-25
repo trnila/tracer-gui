@@ -104,8 +104,22 @@ class Des(Action):
         raise NotImplementedError()
 
     def gui(self, window):
-        content = self.descriptor.process.system.read_file(self._get_file_id())
-        window.content.setText(content.decode('utf-8', 'ignore'))
+        content = self.descriptor.process.system.read_file(self._get_file_id()).decode('utf-8', 'ignore')
+
+        str = ""
+        start = 0
+        colors = ['red', 'blue']
+        col = 0
+        for operation in self.descriptor['operations']:
+            if operation['type'] in ['read', 'write']:
+                str += '<span style="color:%s">%s</span>' % (
+                colors[col % len(colors)], content[start:start + operation['size']])
+                start += operation['size']
+                col += 1
+
+        str += content[start:]
+
+        window.content.setText(str.replace("\n", "<br>"))
 
 
 class ReadDes(Des):
