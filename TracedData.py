@@ -112,8 +112,12 @@ class Des(Action):
         col = 0
         for operation in self.descriptor['operations']:
             if operation['type'] in ['read', 'write']:
-                str += '<span style="color:%s">%s</span>' % (
-                colors[col % len(colors)], content[start:start + operation['size']])
+                backtrace = "\n".join([fn['location'] for fn in operation['backtrace']]).strip()
+                str += '<span style="color:%s" title="%s">%s</span>' % (
+                    colors[col % len(colors)],
+                    backtrace,
+                    content[start:start + operation['size']]
+                )
                 start += operation['size']
                 col += 1
 
