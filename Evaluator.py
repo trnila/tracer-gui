@@ -70,11 +70,20 @@ def evalme(query, **kwargs):
 
         return descriptor and descriptor['type'] == 'file' and s.matches(descriptor['path'])
 
+    def is_file2(s=Contains("")):
+        if isinstance(s, str):
+            s = ExactMatch(s)
+
+        return is_file(~Contains(".so") & s)
+
+
+
     a = {
         "process": None,
         "descriptor": None,
         **kwargs,
         "is_file": is_file,
+        "is_file2": is_file2,
         "contains": Contains,
         "endswith": Endswith,
         "startswith": Startswith,
