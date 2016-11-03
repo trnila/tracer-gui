@@ -57,6 +57,17 @@ def _format(fd):
         return 'pipe: %d' % fd['pipe_id']
 
 
+def evalme(query, **kwargs):
+    a = {
+        "process": None,
+        "descriptor": None,
+        **kwargs,
+        #**globals()
+    }
+    print(a['process'])
+    return eval(query, a)
+
+
 class Action:
     def __init__(self, system):
         self.system = system
@@ -66,6 +77,10 @@ class Action:
 
     def gui(self, window):
         pass
+
+    def apply_filter(self, query):
+        print("Warn", self)
+        return False
 
 
 class ProcessCreated(Action):
@@ -91,6 +106,27 @@ class ProcessCreated(Action):
             window.environments.setItem(row, 0, QTableWidgetItem(key))
             window.environments.setItem(row, 1, QTableWidgetItem(value))
             row += 1
+
+    def apply_filter(self, query):
+        return evalme(query, process=self.process, parent=self.parent)
+
+    def __repr__(self):
+        return "[%d] created %d" % (self.process['pid'], self.parent['pid'] if self.parent else 0)
+
+
+class Res(Action):
+    def __init__(self, resource):
+        self.resource = resource
+
+    def generate(self, dot_writer):
+        dot_writer.write_node(_id(self.resource, self.resource.process.system), _format(self.resource))
+
+    def apply_filter(self, query):
+        return evalme(query, descriptor=self.resource)
+
+    def __repr__(self):
+        return "[%d] res" % self.resource.process['pid']
+
 
 class Des(Action):
     def __init__(self, descriptor):
@@ -125,6 +161,9 @@ class Des(Action):
 
         window.content.setText(str.replace("\n", "<br>"))
 
+    def apply_filter(self, filter):
+        return evalme(filter, descriptor=self.descriptor)
+
 
 class ReadDes(Des):
     def generate(self, dot_writer):
@@ -137,6 +176,9 @@ class ReadDes(Des):
     def _get_file_id(self):
         return self.descriptor['read_content']
 
+    def __repr__(self):
+        return "[%d] read: %s" % (self.descriptor.process['pid'], self.descriptor)
+
 
 class WriteDes(Des):
     def generate(self, dot_writer):
@@ -148,6 +190,9 @@ class WriteDes(Des):
 
     def _get_file_id(self):
         return self.descriptor['write_content']
+
+    def __repr__(self):
+        return "[%d] write: %s" % (self.descriptor.process['pid'], self.descriptor)
 
 
 class Mmap(Des):
@@ -181,6 +226,10 @@ class Mmap(Des):
         value = "\n".join(map(_format_mmap, self.descriptor['mmap']))
         window.content.setText(value)
 
+    def __repr__(self):
+        return "[%d] mmap" % self.descriptor.process['pid']
+
+
 class Descriptor:
     def __init__(self, process, data):
         self.data = data
@@ -191,6 +240,7 @@ class Descriptor:
 
     def __contains__(self, item):
         return item in self.data
+
 
 class Process:
     def __init__(self, system, data):
@@ -232,7 +282,6 @@ class System:
 class TracedData:
     def __init__(self):
         self.systems = []
-        self.resources = {}
 
     def load(self, path):
         with open(os.path.join(path, 'data.json')) as file:
@@ -245,6 +294,17 @@ class TracedData:
         str = StringIO()
         dot_writer = DotWriter(str)
         dot_writer.begin()
+
+        # isinstance(action, ReadDes) and "path" in action.descriptor and action.descriptor["path"].startswith("/etc/")
+        def filt(action):
+            import parser
+            try:
+                code = parser.expr(filter).compile()
+                if action.apply_filter(code):
+                    action.generate(dot_writer)
+            except Exception as e:
+                print(e)
+                raise e
 
         all = list(itertools.chain(*[i.all_resources() for i in self.systems]))
         network = [i for i in all if 'server' in i and i['server']]
@@ -273,33 +333,29 @@ class TracedData:
             dot_writer.begin_subgraph("node #%d" % i)
             for pid, process in system.processes.items():
                 parent = system.get_process_by_pid(process['parent']) if process['parent'] > 0 else None
-                ProcessCreated(system, process, parent).generate(dot_writer)
+                filt(ProcessCreated(system, process, parent))
 
                 # kills
                 for kill in process['kills']:
                     dot_writer.write_edge(pid, kill['pid'], label=maps.signals[kill['signal']])
 
                 for name in process['descriptors']:
-                    if filter and filter in self._format(name):
-                        continue
-
                     #if name['type'] == 'socket' and 'server' in name and not name['server'] and len(self.systems) > 1:
                      #   continue
 
-                    dot_writer.write_node(self._id(name, system), self._format(name))
-                    self.resources[self._id(name, system)] = name
+                    filt(Res(name))
 
                     #if 'server' in name and name['server']:
                     #    dot_writer.write_edge(pid, self._id(name, system))
 
                     if 'read_content' in name:
-                        ReadDes(name).generate(dot_writer)
+                        filt(ReadDes(name))
 
                     if 'write_content' in name:
-                        WriteDes(name).generate(dot_writer)
+                        filt(WriteDes(name))
 
                     if 'mmap' in name and len(name['mmap']):
-                        Mmap(name).generate(dot_writer)
+                        filt(Mmap(name))
 
             dot_writer.end_subgraph()
 
