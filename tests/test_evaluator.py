@@ -49,3 +49,34 @@ class TestEvaluator(TestCase):
         self.assertTrue(evalme("is_file(Not(contains('.dll')))", descriptor=desc))
         self.assertTrue(evalme("is_file(~~contains('.so'))", descriptor=desc))
         self.assertTrue(evalme("is_file(Not(Not(contains('.so'))))", descriptor=desc))
+
+    def test_is_file_and(self):
+        sys = System("/tmp", {})
+        proc = Process(sys, {'descriptors': []})
+        desc = Descriptor(proc, {'type': 'file', 'path': '/lib/libc.so.1'})
+
+        self.assertTrue(evalme("is_file(And(contains('.so'), contains('lib')))", descriptor=desc))
+        self.assertFalse(evalme("is_file(And(contains('.so'), contains('dll')))", descriptor=desc))
+        self.assertTrue(evalme("is_file(contains('.so') & contains('lib'))", descriptor=desc))
+        self.assertFalse(evalme("is_file(contains('.so') & contains('dll'))", descriptor=desc))
+
+    def test_is_file_or(self):
+        sys = System("/tmp", {})
+        proc = Process(sys, {'descriptors': []})
+        desc = Descriptor(proc, {'type': 'file', 'path': '/lib/libc.so.1'})
+
+        self.assertTrue(evalme("is_file(Or(contains('.so'), contains('dll')))", descriptor=desc))
+        self.assertTrue(evalme("is_file(Or(contains('dll'), contains('.so')))", descriptor=desc))
+        self.assertTrue(evalme("is_file(contains('.so') | contains('dll'))", descriptor=desc))
+        self.assertTrue(evalme("is_file(contains('dll') | contains('.so'))", descriptor=desc))
+        self.assertFalse(evalme("is_file(contains('x') | contains('z'))", descriptor=desc))
+
+    def test_is_file_complex(self):
+        sys = System("/tmp", {})
+        proc = Process(sys, {'descriptors': []})
+        desc = Descriptor(proc, {'type': 'file', 'path': '/lib/libc.so.1'})
+
+        self.assertTrue(evalme("is_file(contains('.so') & (startswith('/lib') & ~contains('dll')) | endswith('.dll'))",
+                               descriptor=desc))
+        self.assertFalse(evalme("is_file(contains('.so') & (startswith('/lib') & ~contains('dll')) & endswith('.dll'))",
+                                descriptor=desc))
