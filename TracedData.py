@@ -9,47 +9,8 @@ from PyQt5.QtWidgets import QTableWidgetItem
 import maps
 import utils
 from DotWriter import DotWriter
+from Evaluator import evalme
 from dot.parser import XDotParser
-
-
-def evalme(query, **kwargs):
-    descriptor = kwargs['descriptor'] if 'descriptor' in kwargs else None
-
-    class base:
-        def __init__(self, s):
-            self.str = s
-
-        def matches(self, str2):
-            return self.str == str2
-
-    class contains(base):
-        def matches(self, str2):
-            return self.str in str2
-
-    class endswith(base):
-        def matches(self, str2):
-            return str2.endswith(self.str)
-
-    class startswith(base):
-        def matches(self, str2):
-            return str2.startswith(self.str)
-
-    def is_file(s=contains("")):
-        if isinstance(s, str):
-            s = base(s)
-
-        return descriptor and descriptor['type'] == 'file' and s.matches(descriptor['path'])
-
-    a = {
-        "process": None,
-        "descriptor": None,
-        **kwargs,
-        "is_file": is_file,
-        "contains": contains,
-        "endswith": endswith,
-        "startswith": startswith
-    }
-    return eval(query, a)
 
 
 class Action:
