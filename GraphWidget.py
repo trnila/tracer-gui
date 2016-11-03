@@ -24,7 +24,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self.setScene(self.p)
         self.show()
 
-        self.create_graph(filter="/usr/lib")
+        self.create_graph(filter="True")
 
     def create_graph(self, filter=None):
         self.graph = self.data.create_graph(filter)
