@@ -80,3 +80,13 @@ class TestEvaluator(TestCase):
                                descriptor=desc))
         self.assertFalse(evalme("is_file(contains('.so') & (startswith('/lib') & ~contains('dll')) & endswith('.dll'))",
                                 descriptor=desc))
+
+    def test_use_and_or(self):
+        sys = System("/tmp", {})
+        proc = Process(sys, {'descriptors': []})
+        desc = Descriptor(proc, {'type': 'file', 'path': '/lib/libc.so.1'})
+
+        for expr in ["is_file(not contains('.so'))", "is_file(contains('.so') and contains('.so'))",
+                     "is_file(contains('.so') or contains('.so'))"]:
+            with self.assertRaisesRegex(SyntaxError, "operators not allowed"):
+                self.assertTrue(evalme(expr, descriptor=desc))
