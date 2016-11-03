@@ -79,7 +79,7 @@ def evalme(query, **kwargs):
         def matches(self, str2):
             return str2.startswith(self.str)
 
-    def is_file(s):
+    def is_file(s=contains("")):
         if isinstance(s, str):
             s = base(s)
 
