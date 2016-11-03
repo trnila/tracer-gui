@@ -11,6 +11,9 @@ class Expr:
     def __or__(self, other):
         return Or(self, other)
 
+    def __bool__(self):
+        raise SyntaxError("and, or, not operators not allowed, use &, |, ~ instead")
+
 
 class UnaryExpr(Expr):
     def __init__(self, s):
