@@ -12,51 +12,6 @@ from DotWriter import DotWriter
 from dot.parser import XDotParser
 
 
-def _id(fd, system):
-    if fd['type'] == 'file':
-        return "%s_%s" % (system.resource_path, fd['path'])
-
-    if fd['type'] == 'pipe':
-        return "%s_%s" % (id(system), fd['pipe_id'])
-
-    if fd['type'] == 'socket' and fd['domain'] in [socket.AF_INET, socket.AF_INET6]:
-        try:
-            parts = sorted([
-                fd['local']['address'],
-                str(fd['local']['port']),
-                fd['remote']['address'],
-                str(fd['remote']['port']),
-            ])
-
-            return "socket_%s" % (":".join(parts))
-        except:
-            pass
-
-    return _format(fd)
-
-
-def _format(fd):
-    if fd['type'] == 'socket':
-        if fd['domain'] == socket.AF_UNIX:
-            return "unix:%s" % (fd['remote'])
-
-        if fd['domain'] in [socket.AF_INET, socket.AF_INET6] and fd['local']:  # TODO: quickfix
-            if fd['remote'] is None:
-                return "%s:%d" % (fd['local']['address'], fd['local']['port'])
-
-            return "%s:%d\\n<->\\n%s:%d" % (
-                fd['local']['address'], fd['local']['port'],
-                fd['remote']['address'], fd['remote']['port']
-            )
-        return "socket: %s #%s" % (fd['domain'], fd['socket_id'])
-
-    if fd['type'] == 'file':
-        return fd['path']
-
-    if fd['type'] == 'pipe':
-        return 'pipe: %d' % fd['pipe_id']
-
-
 def evalme(query, **kwargs):
     descriptor = kwargs['descriptor'] if 'descriptor' in kwargs else None
 
@@ -148,7 +103,7 @@ class Res(Action):
         self.resource = resource
 
     def generate(self, dot_writer):
-        dot_writer.write_node(_id(self.resource, self.resource.process.system), _format(self.resource))
+        dot_writer.write_node(self.resource.get_id(), self.resource.get_label())
 
     def apply_filter(self, query):
         return evalme(query, descriptor=self.resource)
@@ -197,7 +152,7 @@ class Des(Action):
 class ReadDes(Des):
     def generate(self, dot_writer):
         dot_writer.write_edge(
-            _id(self.descriptor, self.descriptor.process.system),
+            self.descriptor.get_id(),
             self.descriptor.process['pid'],
             data=self,
         )
@@ -213,7 +168,7 @@ class WriteDes(Des):
     def generate(self, dot_writer):
         dot_writer.write_edge(
             self.descriptor.process['pid'],
-            _id(self.descriptor, self.descriptor.process.system),
+            self.descriptor.get_id(),
             data=self,
         )
 
@@ -228,7 +183,7 @@ class Mmap(Des):
     def generate(self, dot_writer):
         dot_writer.write_biedge(
             self.descriptor.process['pid'],
-            _id(self.descriptor, self.descriptor.process.system),
+            self.descriptor.get_id(),
             data=self
         )
 
@@ -259,7 +214,15 @@ class Mmap(Des):
         return "[%d] mmap" % self.descriptor.process['pid']
 
 
-class Descriptor:
+class Object:
+    def get_id(self):
+        raise NotImplemented
+
+    def get_label(self):
+        raise NotImplemented
+
+
+class Descriptor(Object):
     def __init__(self, process, data):
         self.data = data
         self.process = process
@@ -270,8 +233,51 @@ class Descriptor:
     def __contains__(self, item):
         return item in self.data
 
+    def get_id(self):
+        if self['type'] == 'file':
+            return "%s_%s" % (self.process.system.resource_path, self['path'])
 
-class Process:
+        if self['type'] == 'pipe':
+            return "%s_%s" % (id(self.process.system), self['pipe_id'])
+
+        if self['type'] == 'socket' and self['domain'] in [socket.AF_INET, socket.AF_INET6]:
+            try:
+                parts = sorted([
+                    self['local']['address'],
+                    str(self['local']['port']),
+                    self['remote']['address'],
+                    str(self['remote']['port']),
+                ])
+
+                return "socket_%s" % (":".join(parts))
+            except:
+                pass
+
+        return self.get_label()
+
+    def get_label(self):
+        if self['type'] == 'socket':
+            if self['domain'] == socket.AF_UNIX:
+                return "unix:%s" % (self['remote'])
+
+            if self['domain'] in [socket.AF_INET, socket.AF_INET6] and self['local']:  # TODO: quickfix
+                if self['remote'] is None:
+                    return "%s:%d" % (self['local']['address'], self['local']['port'])
+
+                return "%s:%d\\n<->\\n%s:%d" % (
+                    self['local']['address'], self['local']['port'],
+                    self['remote']['address'], self['remote']['port']
+                )
+            return "socket: %s #%s" % (self['domain'], self['socket_id'])
+
+        if self['type'] == 'file':
+            return self['path']
+
+        if self['type'] == 'pipe':
+            return 'pipe: %d' % self['pipe_id']
+
+
+class Process(Object):
     def __init__(self, system, data):
         self.system = system
         self.data = data
@@ -341,7 +347,7 @@ class TracedData:
 
         dot_writer.begin_subgraph('Network')
         for sock in network:
-            dot_writer.write_node(self._id(sock, 1), self._format(sock))
+            dot_writer.write_node(sock.get_id(), sock.get_label())
         dot_writer.end_subgraph()
 
         mymap = {}
@@ -414,9 +420,3 @@ class TracedData:
 
         parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'), self, dot_writer.bag)
         return parser.parse()
-
-    def _id(self, fd, system):
-        return _id(fd, system)
-
-    def _format(self, fd):
-       return _format(fd)
