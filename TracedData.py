@@ -58,13 +58,42 @@ def _format(fd):
 
 
 def evalme(query, **kwargs):
+    descriptor = kwargs['descriptor'] if 'descriptor' in kwargs else None
+
+    class base:
+        def __init__(self, s):
+            self.str = s
+
+        def matches(self, str2):
+            return self.str == str2
+
+    class contains(base):
+        def matches(self, str2):
+            return self.str in str2
+
+    class endswith(base):
+        def matches(self, str2):
+            return str2.endswith(self.str)
+
+    class startswith(base):
+        def matches(self, str2):
+            return str2.startswith(self.str)
+
+    def is_file(s):
+        if isinstance(s, str):
+            s = base(s)
+
+        return descriptor and descriptor['type'] == 'file' and s.matches(descriptor['path'])
+
     a = {
         "process": None,
         "descriptor": None,
         **kwargs,
-        #**globals()
+        "is_file": is_file,
+        "contains": contains,
+        "endswith": endswith,
+        "startswith": startswith
     }
-    print(a['process'])
     return eval(query, a)
 
 
