@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import QLineEdit, QDockWidget, QTextEdit, QTableWidget, QTa
 
 from GraphWidget import GraphWidget
 from TracedData import TracedData
-from nodes import Ellipse
 
+DEFAULT_FILTER = 'True'
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
@@ -22,17 +22,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(graph)
 
         def handleFilter(query):
-            for i in graph.graph.nodes:
-                i.setVisible(True)
-                for nei in i.neighbours:
-                    nei.setVisible(True)
-
-            for i in graph.graph.nodes:
-                if isinstance(i, Ellipse):
-                    if query and query in i.label.toPlainText():
-                        i.setVisible(False)
-                        for nei in i.neighbours:
-                            nei.setVisible(False)
+            pass
 
         def handleEnter():
             graph.apply_filter(self.filter.text())
@@ -41,6 +31,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.filter.setFixedWidth(self.width())
         self.filter.textChanged.connect(handleFilter)
         self.filter.returnPressed.connect(handleEnter)
+        self.filter.setText(DEFAULT_FILTER)
+        handleEnter()
 
         dock1 = QDockWidget("Content", self)
         dock1.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)

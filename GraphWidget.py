@@ -24,8 +24,6 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self.setScene(self.p)
         self.show()
 
-        self.create_graph(filter="True")
-
     def create_graph(self, filter=None):
         self.graph = self.data.create_graph(filter)
         self.p.clear()
@@ -36,7 +34,6 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
     def apply_filter(self, query):
         self.create_graph(filter=query)
-
 
     def wheelEvent(self, evt):
         scale = 1.2 if evt.angleDelta().y() > 0 else 0.8
