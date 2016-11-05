@@ -67,7 +67,7 @@ class Res(Action):
         dot_writer.write_node(self.resource.get_id(), self.resource.get_label())
 
     def apply_filter(self, query):
-        return evalme(query, descriptor=self.resource)
+        return evalme(query, descriptor=self.resource) and evalme(query, process=self.resource.process)
 
     def __repr__(self):
         return "[%d] res" % self.resource.process['pid']
@@ -106,8 +106,8 @@ class Des(Action):
 
         window.content.setText(str.replace("\n", "<br>"))
 
-    def apply_filter(self, filter):
-        return evalme(filter, descriptor=self.descriptor)
+    def apply_filter(self, query):
+        return evalme(query, descriptor=self.descriptor) and evalme(query, process=self.descriptor.process)
 
 
 class ReadDes(Des):
