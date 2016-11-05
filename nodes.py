@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QGraphicsEllipseItem
 from PyQt5.QtWidgets import QGraphicsItemGroup
 from PyQt5.QtWidgets import QGraphicsPathItem
 from PyQt5.QtWidgets import QGraphicsPolygonItem
+from PyQt5.QtWidgets import QGraphicsRectItem
 from PyQt5.QtWidgets import QGraphicsTextItem
 
 
@@ -115,9 +116,15 @@ class Text(QGraphicsTextItem):
         self.setPos(x - w / 2, y - fontMetrics.height())
         self.setPlainText(str)
 
-class Process(Ellipse):
+
+class Process(Base):
     def __init__(self, process, *__args):
-        super().__init__(*__args)
+        super().__init__()
+
+        rect = QGraphicsRectItem(*__args)
+        self.addToGroup(rect)
+        rect.setAcceptHoverEvents(True)
+
         self.process = process
         self.neighbours = []
         self.action = process
