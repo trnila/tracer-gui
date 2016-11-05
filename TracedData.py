@@ -35,10 +35,7 @@ class ProcessCreated(Action):
         self.parent = parent
 
     def generate(self, dot_writer):
-        dot_writer.write_node(self.process['pid'], self.process['executable'], data=self, shape='rect')
-
-        if self.parent:
-            dot_writer.write_edge(self.parent['pid'], self.process['pid'])
+        dot_writer.write_edge(self.parent['pid'], self.process['pid'])
 
     def gui(self, window):
         window.content.setText(' '.join(self.process['arguments']))
@@ -53,11 +50,22 @@ class ProcessCreated(Action):
             row += 1
 
     def apply_filter(self, query):
-        return evalme(query, process=self.process, parent=self.parent)
+        return evalme(query, process=self.process) and evalme(query, process=self.process.parent)
 
     def __repr__(self):
         return "[%d] created %d" % (self.process['pid'], self.parent['pid'] if self.parent else 0)
 
+
+class ProcessAction(Action):
+    def __init__(self, system, process):
+        super().__init__(system)
+        self.process = process
+
+    def generate(self, dot_writer):
+        dot_writer.write_node(self.process['pid'], self.process['executable'], data=self, shape='rect')
+
+    def apply_filter(self, query):
+        return evalme(query, process=self.process)
 
 class Res(Action):
     def __init__(self, resource):
@@ -239,9 +247,10 @@ class Descriptor(Object):
 
 
 class Process(Object):
-    def __init__(self, system, data):
+    def __init__(self, system, data, parent=None):
         self.system = system
         self.data = data
+        self.parent = parent
 
         self.data['descriptors'] = [Descriptor(self, i) for i in self.data['descriptors']]
 
@@ -256,6 +265,10 @@ class System:
 
         for id, process in data.items():
             self.processes[int(id)] = Process(self, process)
+
+        for id, process in data.items():
+            if process['parent']:
+                self.get_process_by_pid(int(id)).parent = self.get_process_by_pid(int(process['parent']))
 
     def all_resources(self):
         return list(itertools.chain(*[j['descriptors'] for i, j in self.processes.items()]))
@@ -329,7 +342,10 @@ class TracedData:
             dot_writer.begin_subgraph("node #%d" % i)
             for pid, process in system.processes.items():
                 parent = system.get_process_by_pid(process['parent']) if process['parent'] > 0 else None
-                filt(ProcessCreated(system, process, parent))
+                filt(ProcessAction(system, process))
+
+                if process['parent']:
+                    filt(ProcessCreated(system, process, parent))
 
                 # kills
                 for kill in process['kills']:
