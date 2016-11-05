@@ -308,7 +308,7 @@ class TracedData:
 
         dot_writer.begin_subgraph('Network')
         for sock in network:
-            dot_writer.write_node(sock.get_id(), sock.get_label())
+            filt(Res(sock))
         dot_writer.end_subgraph()
 
         mymap = {}
