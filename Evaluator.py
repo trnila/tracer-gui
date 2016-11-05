@@ -61,9 +61,7 @@ class Or(BinaryExpr):
         return self.op1.matches(str2) or self.op2.matches(str2)
 
 
-def evalme(query, **kwargs):
-    descriptor = kwargs['descriptor'] if 'descriptor' in kwargs else None
-
+def evalme(query, process=None, descriptor=None):
     def is_file(s=Contains("")):
         if isinstance(s, str):
             s = ExactMatch(s)
@@ -76,18 +74,30 @@ def evalme(query, **kwargs):
 
         return is_file(~Contains(".so") & s)
 
+    def is_child_of(pid):
+        if process:
+            p = process
+            while p:
+                if p['pid'] == pid:
+                    return True
+                p = p.parent
+
+        return False
+
+
+
 
 
     a = {
-        "process": None,
-        "descriptor": None,
-        **kwargs,
+        "process": process,
+        "descriptor": descriptor,
         "is_file": is_file,
         "is_file2": is_file2,
         "contains": Contains,
         "endswith": Endswith,
         "startswith": Startswith,
         "exactmatch": ExactMatch,
+        "is_child_of": is_child_of,
         "Not": Not,
         "And": And,
         "Or": Or
