@@ -66,8 +66,12 @@ class Edge(Base):
         path = QPainterPath()
         path.moveTo(points[0][0], points[0][1])
 
-        for part in points:
-            path.lineTo(part[0], part[1])
+        for i in range(1, len(points), 3):
+            path.cubicTo(
+                points[i][0], points[i][1],
+                points[i + 1][0], points[i + 1][1],
+                points[i + 2][0], points[i + 2][1]
+            )
 
         p = MyPath(path)
         p.setAcceptHoverEvents(True)
