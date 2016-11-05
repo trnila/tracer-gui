@@ -35,7 +35,7 @@ class ProcessCreated(Action):
         self.parent = parent
 
     def generate(self, dot_writer):
-        dot_writer.write_node(self.process['pid'], self.process['executable'], data=self)
+        dot_writer.write_node(self.process['pid'], self.process['executable'], data=self, shape='rect')
 
         if self.parent:
             dot_writer.write_edge(self.parent['pid'], self.process['pid'])
