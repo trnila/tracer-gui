@@ -22,7 +22,6 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform | QPainter.HighQualityAntialiasing)
 
         self.setScene(self.p)
-        self.show()
 
     def create_graph(self, filter=None):
         self.graph = self.data.create_graph(filter)
