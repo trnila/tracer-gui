@@ -8,6 +8,7 @@ from GraphWidget import GraphWidget
 from TracedData import TracedData
 
 DEFAULT_FILTER = 'True'
+DEFAULT_FILTER = "process or (is_file2() and type == 'read')"
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):

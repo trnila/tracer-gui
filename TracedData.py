@@ -16,6 +16,8 @@ from dot.parser import XDotParser
 class Action:
     def __init__(self, system):
         self.system = system
+        self.edges = []
+        self.res = []
 
     def generate(self, dot_writer):
         pass
@@ -35,6 +37,7 @@ class ProcessCreated(Action):
         self.parent = parent
 
     def generate(self, dot_writer):
+        dot_writer.write_node(self.process['pid'], self.process['executable'], data=self, shape='rect')
         dot_writer.write_edge(self.parent['pid'], self.process['pid'])
 
     def gui(self, window):
@@ -132,6 +135,9 @@ class ReadDes(Des):
     def __repr__(self):
         return "[%d] read: %s" % (self.descriptor.process['pid'], self.descriptor)
 
+    def apply_filter(self, query):
+        return evalme(query, descriptor=self.descriptor, type='read') and evalme(query, process=self.descriptor.process)
+
 
 class WriteDes(Des):
     def generate(self, dot_writer):
@@ -146,6 +152,10 @@ class WriteDes(Des):
 
     def __repr__(self):
         return "[%d] write: %s" % (self.descriptor.process['pid'], self.descriptor)
+
+    def apply_filter(self, query):
+        return evalme(query, descriptor=self.descriptor, type='write') and evalme(query,
+                                                                                  process=self.descriptor.process)
 
 
 class Mmap(Des):
@@ -178,6 +188,9 @@ class Mmap(Des):
 
         value = "\n".join(map(_format_mmap, self.descriptor['mmap']))
         window.content.setText(value)
+
+    def apply_filter(self, query):
+        return evalme(query, descriptor=self.descriptor, type='mmap') and evalme(query, process=self.descriptor.process)
 
     def __repr__(self):
         return "[%d] mmap" % self.descriptor.process['pid']
@@ -316,7 +329,6 @@ class TracedData:
                 raise e
 
         all = list(itertools.chain(*[i.all_resources() for i in self.systems]))
-        network = [i for i in all if 'server' in i and i['server']]
         network = [i for i in all if i['type'] == 'socket' and 'domain' in i and i['domain'] in [socket.AF_INET, socket.AF_INET6]]
 
         dot_writer.begin_subgraph('Network')
@@ -337,39 +349,75 @@ class TracedData:
                             mymap[_hash(descriptor['local'])] = pid
 
         i = 0
+        root = None
+        pids = {}
         for system in self.systems:
             i += 1
             dot_writer.begin_subgraph("node #%d" % i)
             for pid, process in system.processes.items():
                 parent = system.get_process_by_pid(process['parent']) if process['parent'] > 0 else None
-                filt(ProcessAction(system, process))
 
-                if process['parent']:
-                    filt(ProcessCreated(system, process, parent))
+                if not parent:
+                    root = ProcessAction(system, process)
+                    pids[process['pid']] = root
+                else:
+                    proc = ProcessCreated(system, process, parent)
+                    pids[process['parent']].edges.append(proc)
+                    pids[process['pid']] = proc
 
                 # kills
-                for kill in process['kills']:
-                    dot_writer.write_edge(pid, kill['pid'], label=maps.signals[kill['signal']])
+                # for kill in process['kills']:
+                #    dot_writer.write_edge(pid, kill['pid'], label=maps.signals[kill['signal']])
 
                 for name in process['descriptors']:
                     #if name['type'] == 'socket' and 'server' in name and not name['server'] and len(self.systems) > 1:
                      #   continue
 
-                    filt(Res(name))
+                    #filt(Res(name))
 
                     #if 'server' in name and name['server']:
                     #    dot_writer.write_edge(pid, self._id(name, system))
 
                     if 'read_content' in name:
-                        filt(ReadDes(name))
+                        x = ReadDes(name)
+                        x.des = Res(name)
+                        pids[process['pid']].res.append(x)
 
                     if 'write_content' in name:
-                        filt(WriteDes(name))
+                        x = WriteDes(name)
+                        x.des = Res(name)
+                        pids[process['pid']].res.append(x)
 
                     if 'mmap' in name and len(name['mmap']):
-                        filt(Mmap(name))
+                        x = Mmap(name)
+                        x.des = Res(name)
+                        pids[process['pid']].res.append(x)
 
             dot_writer.end_subgraph()
+
+        def test(node):
+            import parser
+            try:
+                code = parser.expr(filter).compile()
+                return node.apply_filter(code)
+            except Exception as e:
+                print(e)
+                # raise e
+
+        def doit(process):
+            if test(process):
+                process.generate(dot_writer)
+
+                for proc in process.edges:
+                    if test(proc):
+                        doit(proc)
+
+                for res in process.res:
+                    if test(res):
+                        res.des.generate(dot_writer)
+                        res.generate(dot_writer)
+
+        doit(root)
 
         sys = 0
         for system in self.systems:
