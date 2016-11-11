@@ -61,7 +61,7 @@ class Or(BinaryExpr):
         return self.op1.matches(str2) or self.op2.matches(str2)
 
 
-def evalme(query, process=None, descriptor=None):
+def evalme(query, process=None, descriptor=None, type=None):
     def is_file(s=Contains("")):
         if isinstance(s, str):
             s = ExactMatch(s)
@@ -91,6 +91,7 @@ def evalme(query, process=None, descriptor=None):
     a = {
         "process": process,
         "descriptor": descriptor,
+        "type": type,
         "is_file": is_file,
         "is_file2": is_file2,
         "contains": Contains,
