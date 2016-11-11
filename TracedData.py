@@ -4,7 +4,10 @@ import os
 import socket
 from io import StringIO
 
+from PyQt5.QtWidgets import QHeaderView
+from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QTableWidgetItem
+from PyQt5.QtWidgets import QTextEdit
 
 import maps
 import utils
@@ -41,16 +44,26 @@ class ProcessCreated(Action):
         dot_writer.write_edge(self.parent['pid'], self.process['pid'])
 
     def gui(self, window):
-        window.content.setText(' '.join(self.process['arguments']))
+        table = QTableWidget()
+        table.setColumnCount(2)
+        table.setHorizontalHeaderItem(0, QTableWidgetItem("Variable"))
+        table.setHorizontalHeaderItem(1, QTableWidgetItem("Value"))
+        table.verticalHeader().setVisible(False)
+        table.horizontalHeader().setStretchLastSection(True)
+        table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.setRowCount(len(self.process['env']))
 
-        window.environments.setRowCount(len(self.process['env']))
-        window.environments.clearContents()
+        cmdline = QTextEdit()
+        cmdline.setPlainText(' '.join(self.process['arguments']))
 
         row = 0
         for key, value in self.process['env'].items():
-            window.environments.setItem(row, 0, QTableWidgetItem(key))
-            window.environments.setItem(row, 1, QTableWidgetItem(value))
+            table.setItem(row, 0, QTableWidgetItem(key))
+            table.setItem(row, 1, QTableWidgetItem(value))
             row += 1
+
+        window.addTab(cmdline, "Command")
+        window.addTab(table, "Environments")
 
     def apply_filter(self, query):
         return evalme(query, process=self.process)
@@ -115,7 +128,10 @@ class Des(Action):
 
         str += content[start:]
 
-        window.content.setText(str.replace("\n", "<br>"))
+        edit = QTextEdit()
+        edit.setText(str.replace("\n", "<br>"))
+
+        window.addTab(edit, "Content")
 
     def apply_filter(self, query):
         return evalme(query, descriptor=self.descriptor) and evalme(query, process=self.descriptor.process)
@@ -187,7 +203,11 @@ class Mmap(Des):
             )
 
         value = "\n".join(map(_format_mmap, self.descriptor['mmap']))
-        window.content.setText(value)
+
+        edit = QTextEdit()
+        edit.setText(value)
+
+        window.addTab(edit, "Content")
 
     def apply_filter(self, query):
         return evalme(query, descriptor=self.descriptor, type='mmap') and evalme(query, process=self.descriptor.process)
