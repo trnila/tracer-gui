@@ -53,7 +53,7 @@ class ProcessCreated(Action):
             row += 1
 
     def apply_filter(self, query):
-        return evalme(query, process=self.process) and evalme(query, process=self.process.parent)
+        return evalme(query, process=self.process)
 
     def __repr__(self):
         return "[%d] created %d" % (self.process['pid'], self.parent['pid'] if self.parent else 0)
@@ -408,14 +408,14 @@ class TracedData:
             if test(process):
                 process.generate(dot_writer)
 
-                for proc in process.edges:
-                    if test(proc):
-                        doit(proc)
-
                 for res in process.res:
                     if test(res):
                         res.des.generate(dot_writer)
                         res.generate(dot_writer)
+
+            for proc in process.edges:
+                if test(proc):
+                    doit(proc)
 
         doit(root)
 
