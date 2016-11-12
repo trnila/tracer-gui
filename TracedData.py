@@ -333,17 +333,35 @@ class TracedData:
 
     def create_graph(self, filter=None):
         self.filter = filter
+
+        roots = [self.create_system(system) for system in self.systems]
+
         str = StringIO()
         dot_writer = DotWriter(str)
         dot_writer.begin()
 
-        self.generate_network(dot_writer)
+        dot_writer.begin_subgraph("NETWORK")
+        for i, root in enumerate(roots):
+            def g(proc):
+                for process in proc.edges:
+                    g(process)
 
-        i = 0
-        for system in self.systems:
-            i += 1
-            root = self.create_system(system)
+                for res in proc.res:
+                    if isinstance(res, ReadDes) and res.descriptor['type'] == 'socket':
+                        import parser
+                        try:
+                            code = parser.expr(self.filter).compile()
+                            if evalme(code, descriptor=res.descriptor):
+                                dot_writer.write_node(res.descriptor.get_id(), res.descriptor.get_label())
+                        except Exception as e:
+                            print(e)
+                            raise e
 
+            g(root)
+
+        dot_writer.end_subgraph()
+
+        for i, root in enumerate(roots):
             dot_writer.begin_subgraph("node #%d" % i)
             self.doit(root, dot_writer)
             dot_writer.end_subgraph()
@@ -374,6 +392,7 @@ class TracedData:
 
                 # filt(Res(name))
 
+
                 # if 'server' in name and name['server']:
                 #    dot_writer.write_edge(pid, self._id(name, system))
 
@@ -398,6 +417,7 @@ class TracedData:
         return root
 
     def generate_network(self, dot_writer):
+        return
         all = list(itertools.chain(*[i.all_resources() for i in self.systems]))
         network = [i for i in all if
                    i['type'] == 'socket' and 'domain' in i and i['domain'] in [socket.AF_INET, socket.AF_INET6]]
