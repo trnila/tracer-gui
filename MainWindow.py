@@ -10,6 +10,7 @@ from GraphWidget import GraphWidget
 from TracedData import TracedData
 
 DEFAULT_FILTER = "process or is_file2()"
+DEFAULT_FILTER = "process or descriptor and descriptor['type'] == 'socket'"
 
 
 class MainWindow(QtWidgets.QMainWindow):

@@ -332,29 +332,90 @@ class TracedData:
         return self.systems[id]
 
     def create_graph(self, filter=None):
+        self.filter = filter
         str = StringIO()
         dot_writer = DotWriter(str)
         dot_writer.begin()
 
-        # isinstance(action, ReadDes) and "path" in action.descriptor and action.descriptor["path"].startswith("/etc/")
-        def filt(action):
-            import parser
-            try:
-                code = parser.expr(filter).compile()
-                if action.apply_filter(code):
-                    action.generate(dot_writer)
-            except Exception as e:
-                print(e)
-                raise e
+        self.generate_network(dot_writer)
 
+        i = 0
+        for system in self.systems:
+            i += 1
+            root = self.create_system(system)
+
+            dot_writer.begin_subgraph("node #%d" % i)
+            self.doit(root, dot_writer)
+            dot_writer.end_subgraph()
+
+        self.write_interconnection(dot_writer)
+        dot_writer.end()
+
+        return self.gen_graph(dot_writer, str)
+
+    def create_system(self, system):
+        pids = {}
+        for pid, process in system.processes.items():
+            parent = system.get_process_by_pid(process['parent']) if process['parent'] > 0 else None
+
+            if not parent:
+                root = ProcessAction(system, process)
+                pids[process['pid']] = root
+            else:
+                proc = ProcessCreated(system, process, parent)
+                pids[process['pid']] = proc
+
+            # kills
+            # for kill in process['kills']:
+            #    dot_writer.write_edge(pid, kill['pid'], label=maps.signals[kill['signal']])
+
+            for name in process['descriptors']:
+                # if name['type'] == 'socket' and 'server' in name and not name['server'] and len(self.systems) > 1:
+                #   continue
+
+                # filt(Res(name))
+
+                # if 'server' in name and name['server']:
+                #    dot_writer.write_edge(pid, self._id(name, system))
+
+                if 'read_content' in name:
+                    x = ReadDes(name)
+                    x.des = Res(name)
+                    pids[process['pid']].res.append(x)
+
+                if 'write_content' in name:
+                    x = WriteDes(name)
+                    x.des = Res(name)
+                    pids[process['pid']].res.append(x)
+
+                if 'mmap' in name and len(name['mmap']):
+                    x = Mmap(name)
+                    x.des = Res(name)
+                    pids[process['pid']].res.append(x)
+
+        for pid, process in system.processes.items():
+            if process['parent'] != 0:
+                pids[process['parent']].edges.append(pids[process['pid']])
+        return root
+
+    def generate_network(self, dot_writer):
         all = list(itertools.chain(*[i.all_resources() for i in self.systems]))
-        network = [i for i in all if i['type'] == 'socket' and 'domain' in i and i['domain'] in [socket.AF_INET, socket.AF_INET6]]
-
+        network = [i for i in all if
+                   i['type'] == 'socket' and 'domain' in i and i['domain'] in [socket.AF_INET, socket.AF_INET6]]
         dot_writer.begin_subgraph('Network')
         for sock in network:
-            filt(Res(sock))
+            Res(sock).generate(dot_writer)
         dot_writer.end_subgraph()
 
+    def gen_graph(self, dot_writer, str):
+        with open("/tmp/a.dot", "w") as f:
+            f.write(str.getvalue())
+        import os
+        os.system("sh -c 'dot -Txdot /tmp/a.dot > /tmp/a.xdot'")
+        parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'), self, dot_writer.bag)
+        return parser.parse()
+
+    def write_interconnection(self, dot_writer):
         mymap = {}
 
         def _hash(addr):
@@ -366,81 +427,6 @@ class TracedData:
                     if 'family' in descriptor and descriptor['family'] in [socket.AF_INET, socket.AF_INET6]:
                         if '0.0.0.0' not in descriptor['local']['address']:
                             mymap[_hash(descriptor['local'])] = pid
-
-        i = 0
-        root = None
-        pids = {}
-        for system in self.systems:
-            i += 1
-            dot_writer.begin_subgraph("node #%d" % i)
-            for pid, process in system.processes.items():
-                parent = system.get_process_by_pid(process['parent']) if process['parent'] > 0 else None
-
-                if not parent:
-                    root = ProcessAction(system, process)
-                    pids[process['pid']] = root
-                else:
-                    proc = ProcessCreated(system, process, parent)
-                    pids[process['pid']] = proc
-
-                # kills
-                # for kill in process['kills']:
-                #    dot_writer.write_edge(pid, kill['pid'], label=maps.signals[kill['signal']])
-
-                for name in process['descriptors']:
-                    #if name['type'] == 'socket' and 'server' in name and not name['server'] and len(self.systems) > 1:
-                     #   continue
-
-                    #filt(Res(name))
-
-                    #if 'server' in name and name['server']:
-                    #    dot_writer.write_edge(pid, self._id(name, system))
-
-                    if 'read_content' in name:
-                        x = ReadDes(name)
-                        x.des = Res(name)
-                        pids[process['pid']].res.append(x)
-
-                    if 'write_content' in name:
-                        x = WriteDes(name)
-                        x.des = Res(name)
-                        pids[process['pid']].res.append(x)
-
-                    if 'mmap' in name and len(name['mmap']):
-                        x = Mmap(name)
-                        x.des = Res(name)
-                        pids[process['pid']].res.append(x)
-
-            dot_writer.end_subgraph()
-
-            for pid, process in system.processes.items():
-                if process['parent'] != 0:
-                    pids[process['parent']].edges.append(pids[process['pid']])
-
-
-        def test(node):
-            import parser
-            try:
-                code = parser.expr(filter).compile()
-                return node.apply_filter(code)
-            except Exception as e:
-                print(e)
-                # raise e
-
-        def doit(process):
-            if test(process):
-                process.generate(dot_writer)
-
-                for res in process.res:
-                    if test(res):
-                        res.des.generate(dot_writer)
-                        res.generate(dot_writer)
-
-            for proc in process.edges:
-                if test(proc):
-                    doit(proc)
-
-        doit(root)
 
         sys = 0
         for system in self.systems:
@@ -458,13 +444,24 @@ class TracedData:
 
             sys += 1
 
-        dot_writer.end()
+    def test(self, node):
+        import parser
+        try:
+            code = parser.expr(self.filter).compile()
+            return node.apply_filter(code)
+        except Exception as e:
+            print(e)
+            raise e
 
-        with open("/tmp/a.dot", "w") as f:
-            f.write(str.getvalue())
+    def doit(self, process, dot_writer):
+        if self.test(process):
+            process.generate(dot_writer)
 
-        import os
-        os.system("sh -c 'dot -Txdot /tmp/a.dot > /tmp/a.xdot'")
+            for res in process.res:
+                if self.test(res):
+                    res.des.generate(dot_writer)
+                    res.generate(dot_writer)
 
-        parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'), self, dot_writer.bag)
-        return parser.parse()
+        for proc in process.edges:
+            if self.test(proc):
+                self.doit(proc, dot_writer)
