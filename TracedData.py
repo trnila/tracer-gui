@@ -347,15 +347,10 @@ class TracedData:
                     g(process)
 
                 for res in proc.res:
-                    if isinstance(res, ReadDes) and res.descriptor['type'] == 'socket':
-                        import parser
-                        try:
-                            code = parser.expr(self.filter).compile()
-                            if evalme(code, descriptor=res.descriptor):
-                                dot_writer.write_node(res.descriptor.get_id(), res.descriptor.get_label())
-                        except Exception as e:
-                            print(e)
-                            raise e
+                    if isinstance(res, ReadDes) and res.descriptor['type'] == 'socket' and res.descriptor['domain'] in [
+                        socket.AF_INET, socket.AF_INET6]:
+                        if self.test(res.des):
+                            res.des.generate(dot_writer)
 
             g(root)
 
@@ -415,16 +410,6 @@ class TracedData:
             if process['parent'] != 0:
                 pids[process['parent']].edges.append(pids[process['pid']])
         return root
-
-    def generate_network(self, dot_writer):
-        return
-        all = list(itertools.chain(*[i.all_resources() for i in self.systems]))
-        network = [i for i in all if
-                   i['type'] == 'socket' and 'domain' in i and i['domain'] in [socket.AF_INET, socket.AF_INET6]]
-        dot_writer.begin_subgraph('Network')
-        for sock in network:
-            Res(sock).generate(dot_writer)
-        dot_writer.end_subgraph()
 
     def gen_graph(self, dot_writer, str):
         with open("/tmp/a.dot", "w") as f:
