@@ -29,8 +29,7 @@ class Action:
         pass
 
     def apply_filter(self, query):
-        print("Warn", self)
-        return False
+        raise NotImplemented
 
 
 class ProcessCreated(Action):
@@ -382,7 +381,6 @@ class TracedData:
                     pids[process['pid']] = root
                 else:
                     proc = ProcessCreated(system, process, parent)
-                    pids[process['parent']].edges.append(proc)
                     pids[process['pid']] = proc
 
                 # kills
@@ -414,6 +412,11 @@ class TracedData:
                         pids[process['pid']].res.append(x)
 
             dot_writer.end_subgraph()
+
+            for pid, process in system.processes.items():
+                if process['parent'] != 0:
+                    pids[process['parent']].edges.append(pids[process['pid']])
+
 
         def test(node):
             import parser
