@@ -348,7 +348,6 @@ class TracedData:
             self.doit(root, dot_writer)
             dot_writer.end_subgraph()
 
-        self.write_interconnection(dot_writer)
         dot_writer.end()
 
         return self.gen_graph(dot_writer, str)
@@ -414,35 +413,6 @@ class TracedData:
         os.system("sh -c 'dot -Txdot /tmp/a.dot > /tmp/a.xdot'")
         parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'), self, dot_writer.bag)
         return parser.parse()
-
-    def write_interconnection(self, dot_writer):
-        mymap = {}
-
-        def _hash(addr):
-            return "%s:%s" % (addr['address'], addr['port'])
-
-        for system in self.systems:
-            for pid, process in system.processes.items():
-                for descriptor in process['descriptors']:
-                    if 'family' in descriptor and descriptor['family'] in [socket.AF_INET, socket.AF_INET6]:
-                        if '0.0.0.0' not in descriptor['local']['address']:
-                            mymap[_hash(descriptor['local'])] = pid
-
-        sys = 0
-        for system in self.systems:
-            for pid, process in system.processes.items():
-                for name in process['descriptors']:
-                    if name['type'] == 'socket' and name['domain'] in [socket.AF_INET, socket.AF_INET6]:
-                        if '0.0.0.0' in name['local']['address'] and name['remote']:
-                            try:
-                                dot_writer.write_edge(_hash(name['local']), mymap[_hash(name['remote'])],
-                                                      file=name['write_content'], system=sys)
-                                dot_writer.write_edge(mymap[_hash(name['remote'])], _hash(name['local']),
-                                                      file=name['read_content'], system=sys)
-                            except:
-                                print("err")
-
-            sys += 1
 
     def test(self, node):
         import parser
