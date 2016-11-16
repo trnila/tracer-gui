@@ -1,3 +1,5 @@
+import base64
+import copy
 import itertools
 import json
 import os
@@ -100,6 +102,7 @@ class Des(Action):
     def __init__(self, descriptor):
         super().__init__(None)
         self.descriptor = descriptor
+        self.content = None
 
     def _get_file_id(self):
         raise NotImplementedError()
@@ -108,6 +111,12 @@ class Des(Action):
         raise NotImplementedError()
 
     def gui(self, window):
+        if self.content:
+            edit = QTextEdit()
+            edit.setText(self.content)
+            window.addTab(edit, "Content")
+            return
+
         content = self.descriptor.process.system.read_file(self._get_file_id()).decode('utf-8', 'ignore')
 
         str = ""
@@ -347,7 +356,8 @@ class TracedData:
                     g(process)
 
                 for res in proc.res:
-                    if isinstance(res, ReadDes) and res.descriptor['type'] == 'socket' and res.descriptor['domain'] in [
+                    if (isinstance(res, ReadDes) or isinstance(res, WriteDes)) and res.descriptor[
+                        'type'] == 'socket' and res.descriptor['domain'] in [
                         socket.AF_INET, socket.AF_INET6]:
                         if self.test(res.des):
                             res.des.generate(dot_writer)
@@ -391,15 +401,33 @@ class TracedData:
                 # if 'server' in name and name['server']:
                 #    dot_writer.write_edge(pid, self._id(name, system))
 
-                if 'read_content' in name:
-                    x = ReadDes(name)
-                    x.des = Res(name)
-                    pids[process['pid']].res.append(x)
+                if name['type'] == 'socket' and name['socket_type'] == socket.SOCK_DGRAM:
+                    if name['type'] == 'socket' and isinstance(name['local']['address'], list):
+                        for addr in name['local']['address']:
+                            contents = {
+                                "read": {},
+                                "write": {}
+                            }
 
-                if 'write_content' in name:
-                    x = WriteDes(name)
-                    x.des = Res(name)
-                    pids[process['pid']].res.append(x)
+                            for read in name['operations']:
+                                key = str(read['address']['port']) + read['address']['address']
+                                if key not in contents[read['type']]:
+                                    n = copy.deepcopy(name)
+                                    n['local']['address'] = addr
+                                    n.data['remote'] = read['address']
+                                    x = (WriteDes if read['type'] == 'write' else ReadDes)(n)
+                                    x.des = Res(n)
+
+                                    pids[process['pid']].res.append(x)
+                                    contents[read['type']][key] = x
+                                    contents[read['type']][key].content = ''
+
+                                contents[read['type']][key].content += base64.b64decode(read['_']).decode('utf-8')
+                    else:
+                        for key, factory in {'read_content': ReadDes, 'write_content': WriteDes}.items():
+                            x = factory(name)
+                            x.des = Res(name)
+                            pids[process['pid']].res.append(x)
 
                 if 'mmap' in name and len(name['mmap']):
                     x = Mmap(name)
