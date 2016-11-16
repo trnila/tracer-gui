@@ -11,6 +11,7 @@ from actions.ProcessAction import ProcessAction
 from actions.ProcessCreated import ProcessCreated
 from actions.ReadDes import ReadDes
 from actions.Res import Res
+from actions.Signal import Signal
 from actions.WriteDes import WriteDes
 from dot.parser import XDotParser
 from objects.System import System
@@ -75,8 +76,8 @@ class TracedData:
                 pids[process['pid']] = proc
 
             # kills
-            # for kill in process['kills']:
-            #    dot_writer.write_edge(pid, kill['pid'], label=maps.signals[kill['signal']])
+            for kill in process['kills']:
+                pids[process['pid']].res.append(Signal(pid, kill['pid'], kill['signal'], system))
 
             for name in process['descriptors']:
                 # if name['type'] == 'socket' and 'server' in name and not name['server'] and len(self.systems) > 1:
@@ -150,7 +151,9 @@ class TracedData:
 
             for res in process.res:
                 if self.test(res):
-                    res.des.generate(dot_writer)
+                    # TODO: ?
+                    if getattr(res, 'des', None):
+                        res.des.generate(dot_writer)
                     res.generate(dot_writer)
 
         for proc in process.edges:
