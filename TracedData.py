@@ -36,7 +36,7 @@ class TracedData:
         return self.systems[id]
 
     def create_graph(self, filter=None):
-        self.filter = filter
+        self.filter = "True" if not filter else filter
 
         roots = [self.create_system(system) for system in self.systems]
 
