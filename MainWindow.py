@@ -2,15 +2,17 @@ import sys
 
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QTabWidget
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
 from GraphWidget import GraphWidget
-from TracedData import TracedData
+from TracedData import TracedData, FilterException
 
 DEFAULT_FILTER = "process or is_file2()"
 DEFAULT_FILTER = "process or descriptor and descriptor['type'] == 'socket'"
+DEFAULT_FILTER = "1"
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -27,7 +29,10 @@ class MainWindow(QtWidgets.QMainWindow):
         graph = GraphWidget(data)
 
         def handle_enter():
-            graph.apply_filter(self.filter.text())
+            try:
+                graph.apply_filter(self.filter.text())
+            except FilterException as e:
+                QMessageBox().critical(self, "Filter error", e.message)
 
         self.filter = QLineEdit()
         self.filter.returnPressed.connect(handle_enter)
