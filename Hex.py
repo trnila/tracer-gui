@@ -1,30 +1,22 @@
 from PyQt5 import QtCore
 
-from PyQt5.QtCore import QAbstractTableModel
 from PyQt5.QtCore import QItemSelectionModel
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QTextCursor
+from PyQt5.QtGui import QTextFormat
 from PyQt5.QtWidgets import QAbstractItemView
 from PyQt5.QtWidgets import QListWidget
-from PyQt5.QtWidgets import QTableView
+from PyQt5.QtWidgets import QSplitter
 from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QTableWidgetItem
+from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
 
-class Model(QAbstractTableModel):
-    pass
-
-
-class TableView(QTableView):
-    pass
-
-
 def to_hex(i):
     return hex(ord(i)).replace('0x', '').zfill(2)
-
-
-class Wid(QTableWidget):
-    pass
 
 
 colors = [QtCore.Qt.red, QtCore.Qt.blue]
@@ -52,18 +44,41 @@ class MYHex(QWidget):
             else:
                 index = table.model().index(row, col - 16)
 
-            edit.clear()
+            locations.clear()
             for i in table.item(row, col).item.backtrace:
-                edit.addItem(i['location'] if i['location'] else hex(i['ip']))
+                locations.addItem(i['location'] if i['location'] else hex(i['ip']))
             table.selectionModel().select(index, QItemSelectionModel.Select)
 
-        edit = QListWidget()
-        edit.addItem("test")
+        def fn2(item):
+            if item.text()[0] == '/':
+                file, line = item.text().split(':')
+                content = open(file).read()
+                text.setText(content)
+                block = text.document().findBlockByNumber(int(line) - 1)
+                cur = QTextCursor(block)
+                cur.select(QTextCursor.LineUnderCursor)
 
-        table = Wid()
+                extra = QTextEdit.ExtraSelection()
+                extra.format.setProperty(QTextFormat.FullWidthSelection, True)
+                extra.format.setBackground(QColor(Qt.yellow).lighter(160))
+                extra.cursor = cur
+                text.setExtraSelections([extra])
+
+        locations = QListWidget()
+        locations.itemClicked.connect(fn2)
+        locations.setFixedWidth(200)
+
+        text = QTextEdit()
+        text.setReadOnly(True)
+
+        splitter = QSplitter()
+        splitter.addWidget(locations)
+        splitter.addWidget(text)
+
+        table = QTableWidget()
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(table)
-        self.layout().addWidget(edit)
+        self.layout().addWidget(splitter)
 
         table.setColumnCount(32)
         table.horizontalHeader().setDefaultSectionSize(25)
