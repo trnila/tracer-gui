@@ -1,8 +1,10 @@
 import sys
 
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QSplitter
 from PyQt5.QtWidgets import QTabWidget
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
@@ -38,13 +40,16 @@ class MainWindow(QtWidgets.QMainWindow):
         handle_enter()
 
         tab = QTabWidget()
-        tab.setMaximumHeight(200)
 
         layout = QVBoxLayout()
         central.setLayout(layout)
         layout.addWidget(self.filter)
-        layout.addWidget(graph)
-        layout.addWidget(tab)
+
+        splitter = QSplitter(Qt.Vertical)
+        layout.addWidget(splitter)
+        splitter.addWidget(graph)
+        splitter.addWidget(tab)
+
 
         def display(base):
             tab.clear()
