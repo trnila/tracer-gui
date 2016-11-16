@@ -2,6 +2,7 @@ import base64
 import copy
 import json
 import os
+import parser
 import socket
 import subprocess
 from io import StringIO
@@ -16,6 +17,11 @@ from actions.Signal import Signal
 from actions.WriteDes import WriteDes
 from dot.parser import XDotParser
 from objects.System import System
+
+
+class FilterException(Exception):
+    def __init__(self, message):
+        self.message = message
 
 
 class TracedData:
@@ -38,6 +44,18 @@ class TracedData:
         dot_writer = DotWriter(str)
         dot_writer.begin()
 
+        self.create_network(dot_writer, roots)
+
+        for i, root in enumerate(roots):
+            dot_writer.begin_subgraph("node #%d" % i)
+            self.write_system(root, dot_writer)
+            dot_writer.end_subgraph()
+
+        dot_writer.end()
+
+        return self.gen_graph(dot_writer, str)
+
+    def create_network(self, dot_writer, roots):
         dot_writer.begin_subgraph("NETWORK")
         for i, root in enumerate(roots):
             def g(proc):
@@ -52,17 +70,7 @@ class TracedData:
                             res.des.generate(dot_writer)
 
             g(root)
-
         dot_writer.end_subgraph()
-
-        for i, root in enumerate(roots):
-            dot_writer.begin_subgraph("node #%d" % i)
-            self.doit(root, dot_writer)
-            dot_writer.end_subgraph()
-
-        dot_writer.end()
-
-        return self.gen_graph(dot_writer, str)
 
     def create_system(self, system):
         pids = {}
@@ -139,15 +147,13 @@ class TracedData:
         return parser.parse()
 
     def test(self, node):
-        import parser
         try:
             code = parser.expr(self.filter).compile()
             return node.apply_filter(code)
         except Exception as e:
-            print(e)
-            # raise e
+            raise FilterException(e.args[0])
 
-    def doit(self, process, dot_writer):
+    def write_system(self, process, dot_writer):
         if self.test(process):
             process.generate(dot_writer)
 
@@ -160,4 +166,4 @@ class TracedData:
 
         for proc in process.edges:
             if self.test(proc):
-                self.doit(proc, dot_writer)
+                self.write_system(proc, dot_writer)
