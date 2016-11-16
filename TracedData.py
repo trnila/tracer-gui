@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import socket
+import subprocess
 from io import StringIO
 
 from DotWriter import DotWriter
@@ -129,11 +130,12 @@ class TracedData:
         return root
 
     def gen_graph(self, dot_writer, str):
-        with open("/tmp/a.dot", "w") as f:
-            f.write(str.getvalue())
-        import os
-        os.system("sh -c 'dot -Txdot /tmp/a.dot > /tmp/a.xdot'")
-        parser = XDotParser(open("/tmp/a.xdot").read().encode('utf-8'), self, dot_writer.bag)
+        p = subprocess.Popen(["dot", "-Txdot"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate(str.getvalue().encode('utf-8'))
+        if p.returncode != 0:
+            raise Exception(stderr.decode('utf-8'))
+
+        parser = XDotParser(stdout, self, dot_writer.bag)
         return parser.parse()
 
     def test(self, node):
