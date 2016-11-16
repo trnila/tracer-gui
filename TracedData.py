@@ -401,30 +401,31 @@ class TracedData:
                 # if 'server' in name and name['server']:
                 #    dot_writer.write_edge(pid, self._id(name, system))
 
-                if name['type'] == 'socket' and name['socket_type'] == socket.SOCK_DGRAM:
-                    if name['type'] == 'socket' and isinstance(name['local']['address'], list):
-                        for addr in name['local']['address']:
-                            contents = {
-                                "read": {},
-                                "write": {}
-                            }
+                if name['type'] == 'socket' and name['socket_type'] == socket.SOCK_DGRAM and name[
+                    'type'] == 'socket' and isinstance(name['local']['address'], list):
+                    for addr in name['local']['address']:
+                        contents = {
+                            "read": {},
+                            "write": {}
+                        }
 
-                            for read in name['operations']:
-                                key = str(read['address']['port']) + read['address']['address']
-                                if key not in contents[read['type']]:
-                                    n = copy.deepcopy(name)
-                                    n['local']['address'] = addr
-                                    n.data['remote'] = read['address']
-                                    x = (WriteDes if read['type'] == 'write' else ReadDes)(n)
-                                    x.des = Res(n)
+                        for read in name['operations']:
+                            key = str(read['address']['port']) + read['address']['address']
+                            if key not in contents[read['type']]:
+                                n = copy.deepcopy(name)
+                                n['local']['address'] = addr
+                                n.data['remote'] = read['address']
+                                x = (WriteDes if read['type'] == 'write' else ReadDes)(n)
+                                x.des = Res(n)
 
-                                    pids[process['pid']].res.append(x)
-                                    contents[read['type']][key] = x
-                                    contents[read['type']][key].content = ''
+                                pids[process['pid']].res.append(x)
+                                contents[read['type']][key] = x
+                                contents[read['type']][key].content = ''
 
-                                contents[read['type']][key].content += base64.b64decode(read['_']).decode('utf-8')
-                    else:
-                        for key, factory in {'read_content': ReadDes, 'write_content': WriteDes}.items():
+                            contents[read['type']][key].content += base64.b64decode(read['_']).decode('utf-8')
+                else:
+                    for key, factory in {'read_content': ReadDes, 'write_content': WriteDes}.items():
+                        if key in name:
                             x = factory(name)
                             x.des = Res(name)
                             pids[process['pid']].res.append(x)
@@ -454,7 +455,7 @@ class TracedData:
             return node.apply_filter(code)
         except Exception as e:
             print(e)
-            raise e
+            # raise e
 
     def doit(self, process, dot_writer):
         if self.test(process):
