@@ -9,8 +9,8 @@ from PyQt5.QtWidgets import QTabWidget
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
-from GraphWidget import GraphWidget
 from TracedData import TracedData, FilterException
+from widgets.GraphWidget import GraphWidget
 
 DEFAULT_FILTER = "process or is_file2() or (descriptor and descriptor['type'] == 'socket')"
 

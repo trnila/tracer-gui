@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import QTextEdit
 
 from Evaluator import evalme
-from Hex import MYHex, Single
 from actions.Action import Action
+from widgets.Hex import MYHex, Single
 
 
 class Des(Action):
