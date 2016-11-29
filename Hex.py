@@ -89,12 +89,14 @@ class MYHex(QWidget):
 
 class BacktraceWidget(QWidget):
     new_backtrace = pyqtSignal(list)
+    show_source = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
         self.show_sources = True
 
         self.new_backtrace.connect(self._handle_new_backtrace)
+        self.show_source.connect(self._handle_show_source)
 
         self.locations = QListWidget()
         self.locations.itemClicked.connect(self._handle_location_click)
@@ -117,6 +119,14 @@ class BacktraceWidget(QWidget):
         for i in backtrace:
             if not self.show_sources or (i['location'] and self.show_sources):
                 self.locations.addItem(i['location'] if i['location'] else hex(i['ip']))
+
+        self.show_source.emit(0)
+
+    def _handle_show_source(self, n):
+        item = self.locations.item(n)
+        if item:
+            item.setSelected(True)
+            self._handle_location_click(item)
 
     def _handle_location_click(self, item):
         if item.text()[0] == '/':
