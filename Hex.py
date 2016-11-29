@@ -135,5 +135,8 @@ class BacktraceWidget(QWidget):
                 extra.format.setBackground(QColor(Qt.yellow).lighter(160))
                 extra.cursor = cur
                 self.text.setExtraSelections([extra])
+
+                self.text.setTextCursor(cur)
+                self.text.moveCursor(QTextCursor.EndOfLine)
             except IOError as e:
                 QMessageBox().critical(self, "Could not open file", "Could not open file %s: %s" % (file, e.strerror))
