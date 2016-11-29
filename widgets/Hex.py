@@ -28,7 +28,7 @@ class MyItem(QTableWidgetItem):
         self.item = item
 
 
-class MYHex(QWidget):
+class HexView(QWidget):
     def __init__(self, contents):
         super().__init__()
 

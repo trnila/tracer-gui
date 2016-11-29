@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QTextEdit
 
 from Evaluator import evalme
 from actions.Action import Action
-from widgets.Hex import MYHex, Single
+from widgets.Hex import HexView, Single
 
 
 class Des(Action):
@@ -37,7 +37,7 @@ class Des(Action):
 
                 start += operation['size']
 
-        window.addTab(MYHex(operations), "f")
+        window.addTab(HexView(operations), "Hex")
 
     def apply_filter(self, query):
         return evalme(query, descriptor=self.descriptor) and evalme(query, process=self.descriptor.process)
