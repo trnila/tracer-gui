@@ -2,11 +2,13 @@ from PyQt5 import QtCore
 
 from PyQt5.QtCore import QItemSelectionModel
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QColor
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtGui import QTextFormat
 from PyQt5.QtWidgets import QAbstractItemView
 from PyQt5.QtWidgets import QListWidget
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QSplitter
 from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QTableWidgetItem
@@ -44,41 +46,16 @@ class MYHex(QWidget):
             else:
                 index = table.model().index(row, col - 16)
 
-            locations.clear()
-            for i in table.item(row, col).item.backtrace:
-                locations.addItem(i['location'] if i['location'] else hex(i['ip']))
-            table.selectionModel().select(index, QItemSelectionModel.Select)
+            cell = table.item(row, col)
+            if cell:
+                locs.new_backtrace.emit(cell.item.backtrace)
+                table.selectionModel().select(index, QItemSelectionModel.Select)
 
-        def fn2(item):
-            if item.text()[0] == '/':
-                file, line = item.text().split(':')
-                content = open(file).read()
-                text.setText(content)
-                block = text.document().findBlockByNumber(int(line) - 1)
-                cur = QTextCursor(block)
-                cur.select(QTextCursor.LineUnderCursor)
-
-                extra = QTextEdit.ExtraSelection()
-                extra.format.setProperty(QTextFormat.FullWidthSelection, True)
-                extra.format.setBackground(QColor(Qt.yellow).lighter(160))
-                extra.cursor = cur
-                text.setExtraSelections([extra])
-
-        locations = QListWidget()
-        locations.itemClicked.connect(fn2)
-        locations.setFixedWidth(200)
-
-        text = QTextEdit()
-        text.setReadOnly(True)
-
-        splitter = QSplitter()
-        splitter.addWidget(locations)
-        splitter.addWidget(text)
-
+        locs = BacktraceWidget()
         table = QTableWidget()
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(table)
-        self.layout().addWidget(splitter)
+        self.layout().addWidget(locs)
 
         table.setColumnCount(32)
         table.horizontalHeader().setDefaultSectionSize(25)
@@ -108,3 +85,55 @@ class MYHex(QWidget):
         item.setTextAlignment(QtCore.Qt.AlignCenter)
         item.setForeground(colors[index % 2])
         return item
+
+
+class BacktraceWidget(QWidget):
+    new_backtrace = pyqtSignal(list)
+
+    def __init__(self):
+        super().__init__()
+        self.show_sources = True
+
+        self.new_backtrace.connect(self._handle_new_backtrace)
+
+        self.locations = QListWidget()
+        self.locations.itemClicked.connect(self._handle_location_click)
+        self.locations.setFixedWidth(200)
+
+        self.text = QTextEdit(self)
+        self.text.setParent(self)
+        self.text.setReadOnly(True)
+
+        splitter = QSplitter(self)
+        splitter.addWidget(self.locations)
+        splitter.addWidget(self.text)
+
+        lay = QVBoxLayout()
+        lay.addWidget(splitter)
+        self.setLayout(lay)
+
+    def _handle_new_backtrace(self, backtrace):
+        self.locations.clear()
+        for i in backtrace:
+            if not self.show_sources or (i['location'] and self.show_sources):
+                self.locations.addItem(i['location'] if i['location'] else hex(i['ip']))
+
+    def _handle_location_click(self, item):
+        if item.text()[0] == '/':
+            file, line = item.text().split(':')
+            try:
+                with open(file) as f:
+                    content = f.read()
+
+                self.text.setText(content)
+                block = self.text.document().findBlockByNumber(int(line) - 1)
+                cur = QTextCursor(block)
+                cur.select(QTextCursor.LineUnderCursor)
+
+                extra = QTextEdit.ExtraSelection()
+                extra.format.setProperty(QTextFormat.FullWidthSelection, True)
+                extra.format.setBackground(QColor(Qt.yellow).lighter(160))
+                extra.cursor = cur
+                self.text.setExtraSelections([extra])
+            except IOError as e:
+                QMessageBox().critical(self, "Could not open file", "Could not open file %s: %s" % (file, e.strerror))
