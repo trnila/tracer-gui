@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QTextEdit
 from Evaluator import evalme
 from actions.Action import Action
 from widgets.Hex import HexView, Single
+from widgets.TextView import TextView
 
 
 class Des(Action):
@@ -26,8 +27,16 @@ class Des(Action):
 
         content = self.descriptor.process.system.read_file(self._get_file_id()).decode('utf-8', 'ignore')
 
-        start = 0
+        edit = TextView(content, self.descriptor['operations'])
+        window.addTab(edit, "Content")
+        self.create_hexview(content, window)
 
+    def create_hexview(self, content, window):
+        operations = self.gen(content)
+        window.addTab(HexView(operations), "Hex")
+
+    def gen(self, content):
+        start = 0
         operations = []
         for operation in self.descriptor['operations']:
             if operation['type'] in ['read', 'write']:
@@ -36,8 +45,7 @@ class Des(Action):
                 operations.append(si)
 
                 start += operation['size']
-
-        window.addTab(HexView(operations), "Hex")
+        return operations
 
     def apply_filter(self, query):
         return evalme(query, descriptor=self.descriptor) and evalme(query, process=self.descriptor.process)
