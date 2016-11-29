@@ -1,5 +1,4 @@
 from PyQt5 import QtCore
-
 from PyQt5.QtCore import QItemSelectionModel
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import pyqtSignal
@@ -7,7 +6,10 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtGui import QTextFormat
 from PyQt5.QtWidgets import QAbstractItemView
+from PyQt5.QtWidgets import QAction
 from PyQt5.QtWidgets import QListWidget
+from PyQt5.QtWidgets import QListWidgetItem
+from PyQt5.QtWidgets import QMenu
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QSplitter
 from PyQt5.QtWidgets import QTableWidget
@@ -15,6 +17,8 @@ from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
+
+from utils import system_open
 
 
 def to_hex(i):
@@ -87,6 +91,16 @@ class MYHex(QWidget):
         return item
 
 
+class Frame(QListWidgetItem):
+    def __init__(self):
+        super().__init__()
+
+    def text(self):
+        return "oh"
+
+
+
+
 class BacktraceWidget(QWidget):
     new_backtrace = pyqtSignal(list)
     show_source = pyqtSignal(int)
@@ -101,6 +115,8 @@ class BacktraceWidget(QWidget):
         self.locations = QListWidget()
         self.locations.itemClicked.connect(self._handle_location_click)
         self.locations.setFixedWidth(200)
+        self.locations.customContextMenuRequested.connect(self._locations_menu)
+        self.locations.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
         self.text = QTextEdit(self)
         self.text.setParent(self)
@@ -150,3 +166,19 @@ class BacktraceWidget(QWidget):
                 self.text.moveCursor(QTextCursor.EndOfLine)
             except IOError as e:
                 QMessageBox().critical(self, "Could not open file", "Could not open file %s: %s" % (file, e.strerror))
+
+    def _locations_menu(self, point):
+        def open_editor():
+            item = self.locations.selectedItems()[0]
+            if item:
+                file = item.text().split(':')[0]
+                if file:
+                    system_open(file)
+
+        menu = QMenu()
+
+        act = QAction("Open with system editor")
+        act.triggered.connect(open_editor)
+        menu.addAction(act)
+
+        menu.exec_(self.mapToGlobal(point))
