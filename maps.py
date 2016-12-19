@@ -1,4 +1,5 @@
 import mmap as MMAP
+import os
 import signal
 
 
@@ -23,3 +24,4 @@ def create_map(module, start_with):
 signals = create_map(signal, 'SIG')
 mmap_prots = FlaggedDict(create_map(MMAP, 'PROT_'))
 mmap_maps = FlaggedDict(create_map(MMAP, 'MAP'))
+open_modes = FlaggedDict(create_map(os, 'O_'))

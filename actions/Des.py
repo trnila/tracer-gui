@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QTextEdit
 from Evaluator import evalme
 from actions.Action import Action
 from widgets.Hex import HexView, Single
+from widgets.InfoWidget import InfoWidget
 from widgets.TextView import TextView
 
 
@@ -28,6 +29,7 @@ class Des(Action):
         content = self.descriptor.process.system.read_file(self._get_file_id()).decode('utf-8', 'ignore')
 
         edit = TextView(content, self.descriptor['operations'])
+        window.addTab(InfoWidget(self.descriptor), "Info")
         window.addTab(edit, "Content")
         self.create_hexview(content, window)
 
