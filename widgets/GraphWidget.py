@@ -9,7 +9,7 @@ from nodes import Base
 
 
 class GraphWidget(QtWidgets.QGraphicsView):
-    onSelected = pyqtSignal(Base)
+    onSelected = pyqtSignal(object)
 
     def __init__(self, data):
         super().__init__()
