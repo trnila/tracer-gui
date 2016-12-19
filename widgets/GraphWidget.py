@@ -48,5 +48,8 @@ class GraphWidget(QtWidgets.QGraphicsView):
             item = item.parentItem()
 
         if item:
-            print(item)
+            for i in self.p.selectedItems():
+                i.setSelected(False)
+
+            item.setSelected(True)
             self.onSelected.emit(item)

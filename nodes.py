@@ -6,14 +6,35 @@ from PyQt5.QtGui import QPainterPath
 from PyQt5.QtGui import QPainterPathStroker
 from PyQt5.QtGui import QPolygonF
 from PyQt5.QtWidgets import QGraphicsEllipseItem
+from PyQt5.QtWidgets import QGraphicsItem
 from PyQt5.QtWidgets import QGraphicsItemGroup
 from PyQt5.QtWidgets import QGraphicsPathItem
 from PyQt5.QtWidgets import QGraphicsPolygonItem
 from PyQt5.QtWidgets import QGraphicsRectItem
 from PyQt5.QtWidgets import QGraphicsTextItem
+from PyQt5.QtWidgets import QStyle
 
 
 class Base(QGraphicsItemGroup):
+    def __init__(self):
+        super().__init__()
+        self.setFlags(QGraphicsItem.ItemIsSelectable)
+
+    def itemChange(self, evt, val):
+        if evt == QGraphicsItem.ItemSelectedChange and not val:
+            for g in self.childItems():
+                self.setColorTo(g, QColor(0, 0, 0))
+
+        return super().itemChange(evt, val)
+
+    def paint(self, QPainter, QStyleOptionGraphicsItem, widget=None):
+        if self.isSelected():
+            for g in self.childItems():
+                self.setColorTo(g, QColor(255, 0, 0))
+
+        QStyleOptionGraphicsItem.state &= ~QStyle.State_Selected
+        return super().paint(QPainter, QStyleOptionGraphicsItem, widget)
+
     def hoverEnterEvent(self, QGraphicsSceneHoverEvent):
         super().hoverEnterEvent(QGraphicsSceneHoverEvent)
 
