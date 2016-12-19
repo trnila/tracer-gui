@@ -2,6 +2,7 @@ import sys
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QSplitter
@@ -16,44 +17,46 @@ DEFAULT_FILTER = "process or is_file2() or (descriptor and descriptor['type'] ==
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    filter = pyqtSignal(str)
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        data = TracedData()
+        self.data = TracedData()
         for directory in sys.argv[1:]:
-            data.load(directory)
+            self.data.load(directory)
+
+        self.graph = GraphWidget(self.data)
 
         central = QWidget()
+        central.setLayout(QVBoxLayout())
         self.setCentralWidget(central)
 
-        graph = GraphWidget(data)
+        self.filterGui = QLineEdit()
+        self.filterGui.returnPressed.connect(lambda: self.filter.emit(self.filterGui.text()))
 
-        def handle_enter():
-            try:
-                graph.apply_filter(self.filter.text())
-            except FilterException as e:
-                QMessageBox().critical(self, "Filter error", e.message)
+        self.tab = QTabWidget()
+        self.tab.setMinimumHeight(200)
 
-        self.filter = QLineEdit()
-        self.filter.returnPressed.connect(handle_enter)
-        self.filter.setText(DEFAULT_FILTER)
-        handle_enter()
-
-        tab = QTabWidget()
-
-        layout = QVBoxLayout()
-        central.setLayout(layout)
-        layout.addWidget(self.filter)
+        central.layout().addWidget(self.filterGui)
 
         splitter = QSplitter(Qt.Vertical)
-        layout.addWidget(splitter)
-        splitter.addWidget(graph)
-        splitter.addWidget(tab)
+        central.layout().addWidget(splitter)
+        splitter.addWidget(self.graph)
+        splitter.addWidget(self.tab)
 
+        self.filter.connect(self.filter_handler)
+        self.filter.emit(DEFAULT_FILTER)
+        self.graph.onSelected.connect(self.display)
 
-        def display(base):
-            tab.clear()
-            if getattr(base, 'action', None):
-                base.action.gui(tab)
+    def display(self, base):
+        self.tab.clear()
+        if getattr(base, 'action', None):
+            base.action.gui(self.tab)
 
-        graph.onSelected.connect(display)
+    def filter_handler(self, text):
+        self.filterGui.setText(text)
+        try:
+            self.graph.apply_filter(text)
+        except FilterException as e:
+            QMessageBox().critical(self, "Filter error", e.message)
