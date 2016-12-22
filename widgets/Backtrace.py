@@ -33,6 +33,7 @@ class BacktraceWidget(QWidget):
 
         lay = QVBoxLayout()
         lay.addWidget(splitter)
+        lay.setContentsMargins(0, 0, 0, 0)
         self.setLayout(lay)
 
     def _handle_new_backtrace(self, backtrace):
