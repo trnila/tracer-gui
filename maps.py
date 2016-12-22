@@ -8,8 +8,10 @@ class FlaggedDict:
         self.flags = flags
 
     def format(self, val):
-        opts = []
+        if not val:
+            return ''
 
+        opts = []
         for value, str in self.flags.items():
             if val & value:
                 opts.append(str)

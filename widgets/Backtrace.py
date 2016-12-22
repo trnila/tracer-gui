@@ -7,7 +7,7 @@ from utils import system_open
 
 
 class BacktraceWidget(QWidget):
-    new_backtrace = pyqtSignal(list)
+    new_backtrace = pyqtSignal(object)
     show_source = pyqtSignal(int)
 
     def __init__(self):
@@ -36,6 +36,9 @@ class BacktraceWidget(QWidget):
         self.setLayout(lay)
 
     def _handle_new_backtrace(self, backtrace):
+        if not backtrace:
+            return
+
         self.locations.clear()
         for i in backtrace:
             if not self.show_sources or (i['location'] and self.show_sources):
