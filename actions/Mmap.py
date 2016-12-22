@@ -14,7 +14,7 @@ class Mmap(Des):
             data=self
         )
 
-    def gui(self, window):
+    def gui(self, window, graph):
         file = open(self.descriptor['path'], 'rb')
 
         def _format_mmap(item):

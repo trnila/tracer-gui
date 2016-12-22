@@ -52,7 +52,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def display(self, base):
         self.tab.clear()
         if getattr(base, 'action', None):
-            base.action.gui(self.tab)
+            base.action.gui(self.tab, self.graph)
 
     def filter_handler(self, text):
         self.filterGui.setText(text)

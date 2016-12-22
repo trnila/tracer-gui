@@ -7,9 +7,10 @@ from widgets.Backtrace import BacktraceWidget
 
 
 class InfoWidget(QWidget):
-    def __init__(self, descriptor):
+    def __init__(self, descriptor, graph):
         super().__init__()
         self.descriptor = descriptor
+        self.graphWidget = graph
 
         text = QTextBrowser()
         text.anchorClicked.connect(self.anchor_clicked)
@@ -36,3 +37,5 @@ class InfoWidget(QWidget):
                 self.backtrace.new_backtrace.emit(self.descriptor['backtrace'])
             else:
                 self.backtrace.hide()
+        else:
+            self.graphWidget.showPid.emit(self.descriptor['opened_pid'])
