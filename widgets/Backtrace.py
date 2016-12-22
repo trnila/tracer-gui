@@ -35,6 +35,14 @@ class BacktraceWidget(QWidget):
         lay.addWidget(splitter)
         lay.setContentsMargins(0, 0, 0, 0)
         self.setLayout(lay)
+        self.hide()
+
+    def is_empty(self, backtrace):
+        if backtrace:
+            for i in backtrace:
+                if not self.show_sources or (i['location'] and self.show_sources):
+                    return False
+        return True
 
     def _handle_new_backtrace(self, backtrace):
         if not backtrace:
@@ -46,6 +54,7 @@ class BacktraceWidget(QWidget):
                 self.locations.addItem(i['location'] if i['location'] else hex(i['ip']))
 
         self.show_source.emit(0)
+        self.show()
 
     def _handle_show_source(self, n):
         item = self.locations.item(n)
