@@ -7,7 +7,7 @@ class Action:
     def generate(self, dot_writer):
         pass
 
-    def gui(self, window):
+    def gui(self, window, graph):
         pass
 
     def apply_filter(self, query):

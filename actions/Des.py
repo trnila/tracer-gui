@@ -19,7 +19,7 @@ class Des(Action):
     def generate(self, dot_writer):
         raise NotImplementedError()
 
-    def gui(self, window):
+    def gui(self, window, graph):
         if self.content:
             edit = QTextEdit()
             edit.setText(self.content)
@@ -29,7 +29,7 @@ class Des(Action):
         content = self.descriptor.process.system.read_file(self._get_file_id()).decode('utf-8', 'ignore')
 
         edit = TextView(content, self.descriptor['operations'])
-        window.addTab(InfoWidget(self.descriptor), "Info")
+        window.addTab(InfoWidget(self.descriptor, graph), "Info")
         window.addTab(edit, "Content")
         self.create_hexview(content, window)
 
