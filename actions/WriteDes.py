@@ -13,6 +13,9 @@ class WriteDes(Des):
     def _get_file_id(self):
         return self.descriptor['write_content']
 
+    def type(self):
+        return 'write'
+
     def __repr__(self):
         return "[%d] write: %s" % (self.descriptor.process['pid'], self.descriptor)
 

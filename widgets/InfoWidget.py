@@ -2,7 +2,6 @@ from PyQt5.QtWidgets import QTextBrowser
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
-from maps import open_modes
 from widgets.Backtrace import BacktraceWidget
 
 
@@ -18,7 +17,7 @@ class InfoWidget(QWidget):
         self.backtrace = BacktraceWidget()
 
         items = [
-            'Mode: ' + open_modes.format(descriptor['mode']),
+            # 'Mode: ' + open_modes.format(descriptor['mode']),
             "Opened in: <a href='#show_proc'>%s</a> %s" % (
                 descriptor['opened_pid'],
                 "(<a href='#backtrace'>Show backtrace</a>)" if not self.backtrace.is_empty(
