@@ -16,23 +16,18 @@ class TextView(QWidget):
         backtraceWidget = BacktraceWidget()
 
         str = ""
-        start = 0
         colors = ['red', 'blue']
         col = 0
         i = 0
         for operation in operations:
-            if operation['type'] in ['read', 'write']:
-                self.backtraces.append(operation['backtrace'])
-                str += '<a href="%d" style="color:%s">%s</a>' % (
-                    i,
-                    colors[col % len(colors)],
-                    content[start:start + operation['size']]
-                )
-                start += operation['size']
-                col += 1
-                i += 1
-
-        str += content[start:]
+            self.backtraces.append(operation.backtrace)
+            str += '<a href="%d" style="color:%s">%s</a>' % (
+                i,
+                colors[col % len(colors)],
+                operation.content
+            )
+            col += 1
+            i += 1
 
         browser = QTextBrowser()
         browser.setText(str.replace("\n", "<br>"))

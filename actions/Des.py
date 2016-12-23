@@ -19,6 +19,9 @@ class Des(Action):
     def generate(self, dot_writer):
         raise NotImplementedError()
 
+    def type(self):
+        raise NotImplementedError()
+
     def gui(self, window, graph):
         if self.content:
             edit = QTextEdit()
@@ -28,20 +31,20 @@ class Des(Action):
 
         content = self.descriptor.process.system.read_file(self._get_file_id()).decode('utf-8', 'ignore')
 
-        edit = TextView(content, self.descriptor['operations'])
+        edit = TextView(content, self.get_backtrace(content))
         window.addTab(InfoWidget(self.descriptor, graph), "Info")
         window.addTab(edit, "Content")
         self.create_hexview(content, window)
 
     def create_hexview(self, content, window):
-        operations = self.gen(content)
+        operations = self.get_backtrace(content)
         window.addTab(HexView(operations), "Hex")
 
-    def gen(self, content):
+    def get_backtrace(self, content):
         start = 0
         operations = []
         for operation in self.descriptor['operations']:
-            if operation['type'] in ['read', 'write']:
+            if operation['type'] == self.type():
                 si = Single(content[start:start + operation['size']])
                 si.backtrace = operation['backtrace']
                 operations.append(si)

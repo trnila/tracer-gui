@@ -13,6 +13,9 @@ class ReadDes(Des):
     def _get_file_id(self):
         return self.descriptor['read_content']
 
+    def type(self):
+        return 'read'
+
     def __repr__(self):
         return "[%d] read: %s" % (self.descriptor.process['pid'], self.descriptor)
 
