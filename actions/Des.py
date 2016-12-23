@@ -2,7 +2,8 @@ from PyQt5.QtWidgets import QTextEdit
 
 from Evaluator import evalme
 from actions.Action import Action
-from widgets.Hex import HexView, Single
+from objects.Backtrace import Frame, Backtrace
+from widgets.Hex import HexView
 from widgets.InfoWidget import InfoWidget
 from widgets.TextView import TextView
 
@@ -31,7 +32,7 @@ class Des(Action):
 
         content = self.descriptor.process.system.read_file(self._get_file_id()).decode('utf-8', 'ignore')
 
-        edit = TextView(content, self.get_backtrace(content))
+        edit = TextView(self.get_backtrace(content))
         window.addTab(InfoWidget(self.descriptor, graph), "Info")
         window.addTab(edit, "Content")
         self.create_hexview(content, window)
@@ -42,15 +43,16 @@ class Des(Action):
 
     def get_backtrace(self, content):
         start = 0
-        operations = []
+        backtrace = Backtrace()
+
         for operation in self.descriptor['operations']:
             if operation['type'] == self.type():
-                si = Single(content[start:start + operation['size']])
-                si.backtrace = operation['backtrace']
-                operations.append(si)
+                frame = Frame(content[start:start + operation['size']])
+                frame.backtrace = operation['backtrace']
+                backtrace.add_frame(frame)
 
                 start += operation['size']
-        return operations
+        return backtrace
 
     def apply_filter(self, query):
         return evalme(query, descriptor=self.descriptor) and evalme(query, process=self.descriptor.process)
