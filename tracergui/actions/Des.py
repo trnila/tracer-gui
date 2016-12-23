@@ -1,11 +1,12 @@
-from PyQt5.QtWidgets import QTextEdit
-
 from Evaluator import evalme
+from PyQt5.QtWidgets import QTextEdit
 from actions.Action import Action
 from objects.Backtrace import Frame, Backtrace
 from widgets.Hex import HexView
 from widgets.InfoWidget import InfoWidget
 from widgets.TextView import TextView
+
+from tracergui.widgets.SocketOptionsWidget import SocketOptionsWidget
 
 
 class Des(Action):
@@ -34,6 +35,8 @@ class Des(Action):
 
         edit = TextView(self.get_backtrace(content))
         window.addTab(InfoWidget(self.descriptor, graph), "Info")
+        if 'sockopts' in self.descriptor:
+            window.addTab(SocketOptionsWidget(self.descriptor['sockopts']), "Socket options")
         window.addTab(edit, "Content")
         self.create_hexview(content, window)
 
