@@ -5,7 +5,7 @@ from widgets.Backtrace import BacktraceWidget
 
 
 class TextView(QWidget):
-    def __init__(self, content, operations):
+    def __init__(self, backtrace):
         super().__init__()
         self.backtraces = []
 
@@ -19,12 +19,12 @@ class TextView(QWidget):
         colors = ['red', 'blue']
         col = 0
         i = 0
-        for operation in operations:
-            self.backtraces.append(operation.backtrace)
+        for frame in backtrace.frames:
+            self.backtraces.append(frame.backtrace)
             str += '<a href="%d" style="color:%s">%s</a>' % (
                 i,
                 colors[col % len(colors)],
-                operation.content
+                frame.content
             )
             col += 1
             i += 1

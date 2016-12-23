@@ -16,12 +16,6 @@ def to_hex(i):
 colors = [QtCore.Qt.red, QtCore.Qt.blue]
 
 
-class Single:
-    def __init__(self, content, backtrace=[]):
-        self.content = content
-        self.backtrace = backtrace
-
-
 class MyItem(QTableWidgetItem):
     def __init__(self, text, item):
         super().__init__(text)
@@ -29,7 +23,7 @@ class MyItem(QTableWidgetItem):
 
 
 class HexView(QWidget):
-    def __init__(self, contents):
+    def __init__(self, backtrace):
         super().__init__()
 
         def fn(row, col):
@@ -62,10 +56,10 @@ class HexView(QWidget):
         row = 0
         col = 0
         color_index = 0
-        for content in contents:
-            for i in content.content:
-                table.setItem(row, col, self.create_item(to_hex(i), content, color_index))
-                table.setItem(row, col + 16, self.create_item(i if i.isprintable() else '.', content, color_index))
+        for frame in backtrace.frames:
+            for i in frame.content:
+                table.setItem(row, col, self.create_item(to_hex(i), frame, color_index))
+                table.setItem(row, col + 16, self.create_item(i if i.isprintable() else '.', frame, color_index))
                 col += 1
                 if col >= 16:
                     col = 0
