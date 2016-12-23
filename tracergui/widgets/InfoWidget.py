@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import QTextBrowser
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
-
 from widgets.Backtrace import BacktraceWidget
+
+from tracergui import maps
 
 
 class InfoWidget(QWidget):
@@ -17,13 +18,21 @@ class InfoWidget(QWidget):
         self.backtrace = BacktraceWidget()
 
         items = [
-            # 'Mode: ' + open_modes.format(descriptor['mode']),
             "Opened in: <a href='#show_proc'>%s</a> %s" % (
                 descriptor['opened_pid'],
                 "(<a href='#backtrace'>Show backtrace</a>)" if not self.backtrace.is_empty(
                     descriptor['backtrace']) else ""
             )
         ]
+
+        if 'mode' in descriptor:
+            items.append('Mode: %s' % maps.open_modes.format(descriptor['mode']))
+
+        if 'domain' in descriptor:
+            items.append("Domain: %s" % maps.domains.get(descriptor['domain']))
+            items.append("Remote: %s" % descriptor['remote'])
+            items.append("Type: %s" % maps.socket_types.get(descriptor['socket_type']))
+
         text.setHtml("<br>".join(items))
 
         self.setLayout(QVBoxLayout())

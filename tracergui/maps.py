@@ -1,6 +1,7 @@
 import mmap as MMAP
 import os
 import signal
+import socket
 
 
 class FlaggedDict:
@@ -27,3 +28,5 @@ signals = create_map(signal, 'SIG')
 mmap_prots = FlaggedDict(create_map(MMAP, 'PROT_'))
 mmap_maps = FlaggedDict(create_map(MMAP, 'MAP'))
 open_modes = FlaggedDict(create_map(os, 'O_'))
+domains = create_map(socket, 'AF_')
+socket_types = create_map(socket, 'SOCK_')
