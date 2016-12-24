@@ -1,5 +1,5 @@
-from objects.Descriptor import Descriptor
-from objects.Object import Object
+from tracergui.objects.Descriptor import Descriptor
+from tracergui.objects.Object import Object
 
 
 class Process(Object):

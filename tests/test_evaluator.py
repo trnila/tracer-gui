@@ -1,9 +1,9 @@
 from unittest import TestCase
 
-from Evaluator import evalme
-from objects.Descriptor import Descriptor
-from objects.Process import Process
-from objects.System import System
+from tracergui.Evaluator import evalme
+from tracergui.objects.Descriptor import Descriptor
+from tracergui.objects.Process import Process
+from tracergui.objects.System import System
 
 
 class TestEvaluator(TestCase):

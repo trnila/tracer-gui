@@ -7,16 +7,16 @@ import socket
 import subprocess
 from io import StringIO
 
-from DotWriter import DotWriter
-from actions.Mmap import Mmap
-from actions.ProcessAction import ProcessAction
-from actions.ProcessCreated import ProcessCreated
-from actions.ReadDes import ReadDes
-from actions.Res import Res
-from actions.Signal import Signal
-from actions.WriteDes import WriteDes
-from dot.parser import XDotParser
-from objects.System import System
+from tracergui.DotWriter import DotWriter
+from tracergui.actions.Mmap import Mmap
+from tracergui.actions.ProcessAction import ProcessAction
+from tracergui.actions.ProcessCreated import ProcessCreated
+from tracergui.actions.ReadDes import ReadDes
+from tracergui.actions.Res import Res
+from tracergui.actions.Signal import Signal
+from tracergui.actions.WriteDes import WriteDes
+from tracergui.dot.parser import XDotParser
+from tracergui.objects.System import System
 
 
 class FilterException(Exception):
