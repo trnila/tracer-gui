@@ -1,12 +1,12 @@
-from Evaluator import evalme
 from PyQt5.QtWidgets import QTextEdit
-from actions.Action import Action
-from objects.Backtrace import Frame, Backtrace
-from widgets.Hex import HexView
-from widgets.InfoWidget import InfoWidget
-from widgets.TextView import TextView
 
+from tracergui.Evaluator import evalme
+from tracergui.actions.Action import Action
+from tracergui.objects.Backtrace import Frame, Backtrace
+from tracergui.widgets.Hex import HexView
+from tracergui.widgets.InfoWidget import InfoWidget
 from tracergui.widgets.SocketOptionsWidget import SocketOptionsWidget
+from tracergui.widgets.TextView import TextView
 
 
 class Des(Action):

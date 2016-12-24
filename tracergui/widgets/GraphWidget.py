@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QGraphicsItem
 from PyQt5.QtWidgets import QGraphicsScene
 from PyQt5.QtWidgets import QGraphicsView
 
-from nodes import Base, Process
+from tracergui.nodes import Base, Process
 
 
 class GraphWidget(QtWidgets.QGraphicsView):

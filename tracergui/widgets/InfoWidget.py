@@ -1,9 +1,9 @@
 from PyQt5.QtWidgets import QTextBrowser
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
-from widgets.Backtrace import BacktraceWidget
 
 from tracergui import maps
+from tracergui.widgets.Backtrace import BacktraceWidget
 
 
 class InfoWidget(QWidget):

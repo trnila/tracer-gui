@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
-from widgets.Backtrace import BacktraceWidget
+from tracergui.widgets.Backtrace import BacktraceWidget
 
 
 def to_hex(i):

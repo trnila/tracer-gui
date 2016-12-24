@@ -1,5 +1,5 @@
-from Evaluator import evalme
-from actions.Des import Des
+from tracergui.Evaluator import evalme
+from tracergui.actions.Des import Des
 
 
 class WriteDes(Des):

@@ -16,9 +16,9 @@
 import colorsys
 import sys
 
-from dot import elements
-from dot.Pen import Pen
-from nodes import Edge, Process, Polygon, Text, Resource
+from tracergui.dot import elements
+from tracergui.dot.Pen import Pen
+from tracergui.nodes import Edge, Process, Polygon, Text, Resource
 from .lexer import ParseError, DotLexer
 
 EOF = -1

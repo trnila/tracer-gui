@@ -3,7 +3,7 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QTextCursor, QTextFormat, QColor
 from PyQt5.QtWidgets import QWidget, QListWidget, QTextEdit, QSplitter, QVBoxLayout, QMessageBox, QMenu, QAction
 
-from utils import system_open
+from tracergui.utils import system_open
 
 
 class BacktraceWidget(QWidget):

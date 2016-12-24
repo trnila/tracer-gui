@@ -1,5 +1,5 @@
-from Evaluator import evalme
-from actions.Action import Action
+from tracergui.Evaluator import evalme
+from tracergui.actions.Action import Action
 
 
 class ProcessAction(Action):
