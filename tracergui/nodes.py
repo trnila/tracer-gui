@@ -150,6 +150,9 @@ class Process(Base):
         self.neighbours = []
         self.action = process
 
+        if process.process['thread']:
+            rect.setBrush(QColor(255, 250, 205))
+
     def __repr__(self):
         return self.process.process['executable']
 
