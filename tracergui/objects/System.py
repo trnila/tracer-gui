@@ -8,10 +8,10 @@ class System:
         self.processes = {}
         self.resource_path = resource_path
 
-        for id, process in data.items():
+        for id, process in data['processes'].items():
             self.processes[int(id)] = Process(self, process)
 
-        for id, process in data.items():
+        for id, process in data['processes'].items():
             if process['parent']:
                 self.get_process_by_pid(int(id)).parent = self.get_process_by_pid(int(process['parent']))
 
