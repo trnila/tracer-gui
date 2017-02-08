@@ -17,13 +17,14 @@ class InfoWidget(QWidget):
 
         self.backtrace = BacktraceWidget()
 
-        items = [
-            "Opened in: <a href='#show_proc'>%s</a> %s" % (
-                descriptor['opened_pid'],
-                "(<a href='#backtrace'>Show backtrace</a>)" if not self.backtrace.is_empty(
+        items = []
+
+        if 'opened_pid' in descriptor:
+            items.append("Opened in: <a href='#show_proc'>{pid}</a> {backtrace}".format(
+                pid=descriptor['opened_pid'],
+                backtrace="(<a href='#backtrace'>Show backtrace</a>)" if not self.backtrace.is_empty(
                     descriptor['backtrace']) else ""
-            )
-        ]
+            ))
 
         if 'mode' in descriptor:
             items.append('Mode: %s' % maps.open_modes.format(descriptor['mode']))
