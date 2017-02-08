@@ -49,7 +49,7 @@ class Descriptor(Object):
                     self['local']['address'], self['local']['port'],
                     self['remote']['address'], self['remote']['port']
                 )
-            return "socket: %s #%s" % (self['domain'], self['socket_id'])
+            return "socket: {}".format(self['domain'])
 
         if self['type'] == 'file':
             return self['path']
