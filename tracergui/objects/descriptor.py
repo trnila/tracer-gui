@@ -1,6 +1,6 @@
 import socket
 
-from tracergui.objects.Object import Object
+from tracergui.objects.object import Object
 
 
 class Descriptor(Object):

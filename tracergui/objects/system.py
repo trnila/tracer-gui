@@ -1,6 +1,6 @@
 import itertools
 
-from tracergui.objects.Process import Process
+from tracergui.objects.process import Process
 
 
 class System:

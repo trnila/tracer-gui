@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QTextEdit
 
-from tracergui.Evaluator import evalme
-from tracergui.actions.Action import Action
+from tracergui.actions.action import Action
+from tracergui.evaluator import evalme
 
 
 class ProcessCreated(Action):

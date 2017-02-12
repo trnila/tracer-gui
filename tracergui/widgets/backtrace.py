@@ -1,4 +1,5 @@
 from PyQt5 import QtCore
+
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QTextCursor, QTextFormat, QColor
 from PyQt5.QtWidgets import QWidget, QListWidget, QTextEdit, QSplitter, QVBoxLayout, QMessageBox, QMenu, QAction

@@ -1,5 +1,5 @@
 from tracergui import maps
-from tracergui.actions.Action import Action
+from tracergui.actions.action import Action
 
 
 class Signal(Action):

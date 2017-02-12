@@ -1,4 +1,5 @@
 from PyQt5 import QtCore
+
 from PyQt5.QtCore import QItemSelectionModel
 from PyQt5.QtWidgets import QAbstractItemView
 from PyQt5.QtWidgets import QTableWidget
@@ -6,7 +7,7 @@ from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
-from tracergui.widgets.Backtrace import BacktraceWidget
+from tracergui.widgets.backtrace import BacktraceWidget
 
 
 def to_hex(i):
