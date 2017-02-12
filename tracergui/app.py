@@ -8,6 +8,6 @@ def main():
     app = QtWidgets.QApplication([])
     window = MainWindow()
     window.setWindowTitle('GUI')
-    window.setFixedSize(1024, 768)
+    window.resize(1024, 768)
     window.show()
     app.exec_()
