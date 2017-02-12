@@ -12,7 +12,9 @@ class ProcessCreated(Action):
 
     def generate(self, dot_writer):
         dot_writer.write_node(self.process['pid'], self.process['executable'], data=self, shape='rect')
-        dot_writer.write_edge(self.parent['pid'], self.process['pid'])
+
+        if self.parent:
+            dot_writer.write_edge(self.parent['pid'], self.process['pid'])
 
     def gui(self, window, graph):
         table = QTableWidget()

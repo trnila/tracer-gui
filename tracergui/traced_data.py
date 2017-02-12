@@ -8,7 +8,6 @@ import subprocess
 from io import StringIO
 
 from tracergui.actions.mmap import Mmap
-from tracergui.actions.process_action import ProcessAction
 from tracergui.actions.process_created import ProcessCreated
 from tracergui.actions.read_des import ReadDes
 from tracergui.actions.res import Res
@@ -96,12 +95,10 @@ class Graphviz:
         for pid, process in system.processes.items():
             parent = system.get_process_by_pid(process['parent']) if process['parent'] > 0 else None
 
+            pids[process['pid']] = ProcessCreated(system, process, parent)
+
             if not parent:
-                root = ProcessAction(system, process)
-                pids[process['pid']] = root
-            else:
-                proc = ProcessCreated(system, process, parent)
-                pids[process['pid']] = proc
+                root = pids[process['pid']]
 
             # kills
             for kill in process['kills']:
