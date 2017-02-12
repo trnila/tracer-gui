@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QTableView
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
-from tracergui.widgets.Backtrace import BacktraceWidget
+from tracergui.widgets.backtrace import BacktraceWidget
 
 
 class Model(QAbstractTableModel):

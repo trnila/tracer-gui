@@ -1,5 +1,5 @@
-from tracergui.Evaluator import evalme
-from tracergui.actions.Des import Des
+from tracergui.actions.des import Des
+from tracergui.evaluator import evalme
 
 
 class ReadDes(Des):

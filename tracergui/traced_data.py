@@ -1,22 +1,23 @@
+import parser
+
 import base64
 import copy
 import json
 import os
-import parser
 import socket
 import subprocess
 from io import StringIO
 
-from tracergui.DotWriter import DotWriter
-from tracergui.actions.Mmap import Mmap
-from tracergui.actions.ProcessAction import ProcessAction
-from tracergui.actions.ProcessCreated import ProcessCreated
-from tracergui.actions.ReadDes import ReadDes
-from tracergui.actions.Res import Res
-from tracergui.actions.Signal import Signal
-from tracergui.actions.WriteDes import WriteDes
+from tracergui.actions.mmap import Mmap
+from tracergui.actions.process_action import ProcessAction
+from tracergui.actions.process_created import ProcessCreated
+from tracergui.actions.read_des import ReadDes
+from tracergui.actions.res import Res
+from tracergui.actions.signal import Signal
+from tracergui.actions.write_des import WriteDes
 from tracergui.dot.parser import XDotParser
-from tracergui.objects.System import System
+from tracergui.dot_writer import DotWriter
+from tracergui.objects.system import System
 
 
 class FilterException(Exception):

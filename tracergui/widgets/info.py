@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
 from tracergui import maps
-from tracergui.widgets.Backtrace import BacktraceWidget
+from tracergui.widgets.backtrace import BacktraceWidget
 
 
 class InfoWidget(QWidget):

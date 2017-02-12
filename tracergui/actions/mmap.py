@@ -2,8 +2,8 @@ from PyQt5.QtWidgets import QTextEdit
 
 from tracergui import maps
 from tracergui import utils
-from tracergui.Evaluator import evalme
-from tracergui.actions.Des import Des
+from tracergui.actions.des import Des
+from tracergui.evaluator import evalme
 
 
 class Mmap(Des):

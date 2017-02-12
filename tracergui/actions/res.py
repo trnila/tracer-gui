@@ -1,5 +1,5 @@
-from tracergui.Evaluator import evalme
-from tracergui.actions.Action import Action
+from tracergui.actions.action import Action
+from tracergui.evaluator import evalme
 
 
 class Res(Action):

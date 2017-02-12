@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from PyQt5 import QtWidgets
 
-from tracergui.MainWindow import MainWindow
+from tracergui.main_window import MainWindow
 
 
 def main():
