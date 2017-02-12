@@ -9,7 +9,7 @@ class Descriptor(Object):
         self.process = process
 
     def __getitem__(self, item):
-        return self.data[item]
+        return self.data[item] if item in self.data else ""
 
     def __contains__(self, item):
         return item in self.data
