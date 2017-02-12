@@ -1,9 +1,8 @@
-import parser
-
 import base64
 import copy
 import json
 import os
+import parser
 import socket
 import subprocess
 from io import StringIO
@@ -27,14 +26,33 @@ class FilterException(Exception):
 
 class TracedData:
     def __init__(self):
+        self.graphviz = Graphviz()
+
+    def load(self, path):
+        self.graphviz.load(path)
+
+    def gen_graph(self, dot_writer):
+        p = subprocess.Popen(["dot", "-Txdot"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate(dot_writer.get_content().encode('utf-8'))
+        if p.returncode != 0:
+            raise Exception(stderr.decode('utf-8'))
+
+        parser = XDotParser(stdout, self, dot_writer.bag)
+        return parser.parse()
+
+    def create_graph(self, filter=None):
+        dot_writer = self.graphviz.create_graph(filter)
+
+        return self.gen_graph(dot_writer)
+
+
+class Graphviz:
+    def __init__(self):
         self.systems = []
 
     def load(self, path):
         with open(os.path.join(path, 'data.json')) as file:
             self.systems.append(System(path, json.load(file)))
-
-    def get_system(self, id):
-        return self.systems[id]
 
     def create_graph(self, filter=None):
         self.filter = "True" if not filter else filter
@@ -54,7 +72,7 @@ class TracedData:
 
         dot_writer.end()
 
-        return self.gen_graph(dot_writer, str)
+        return dot_writer
 
     def create_network(self, dot_writer, roots):
         dot_writer.begin_subgraph("NETWORK")
@@ -137,15 +155,6 @@ class TracedData:
             if process['parent'] != 0:
                 pids[process['parent']].edges.append(pids[process['pid']])
         return root
-
-    def gen_graph(self, dot_writer, str):
-        p = subprocess.Popen(["dot", "-Txdot"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = p.communicate(str.getvalue().encode('utf-8'))
-        if p.returncode != 0:
-            raise Exception(stderr.decode('utf-8'))
-
-        parser = XDotParser(stdout, self, dot_writer.bag)
-        return parser.parse()
 
     def test(self, node):
         try:

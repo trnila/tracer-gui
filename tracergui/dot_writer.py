@@ -17,6 +17,9 @@ class DotWriter:
         self.subgraph_id = 0
         self.bag = Bag()
 
+    def get_content(self):
+        return self.out.getvalue()
+
     def begin(self):
         self.out.write("digraph G {\n")
 

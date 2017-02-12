@@ -4,6 +4,9 @@ setup(
     name='tracergui',
     packages=find_packages(),
     entry_points={
-        'console_scripts': ['tracergui = tracergui.app:main']
+        'console_scripts': [
+            'tracergui = tracergui.app:main',
+            'tracer2dot = tracergui.tracer2dot:main'
+        ]
     }
 )
