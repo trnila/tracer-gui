@@ -1,7 +1,48 @@
+import struct
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialogButtonBox
+from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QTextEdit
+from PyQt5.QtWidgets import QVBoxLayout
+from PyQt5.QtWidgets import QWidget
 
 from tracergui.actions.action import Action
 from tracergui.evaluator import evalme
+
+class MyDialog(QMainWindow):
+    def __init__(self, parent=None):
+        super(MyDialog, self).__init__(parent)
+
+        self.content = QTextEdit()
+
+        btn = QPushButton()
+        self.n = 0
+        btn.clicked.connect(self.next)
+
+        widget = QWidget()
+        widget.setLayout(QVBoxLayout())
+        widget.layout().addWidget(btn)
+        widget.layout().addWidget(self.content)
+
+        self.setCentralWidget(widget)
+
+        self.load(0)
+
+    def next(self, a):
+        self.n += 1
+        self.load(self.n)
+
+
+    def load(self, n):
+        f = open("/tmp/rep/139987621609472_32", "rb")
+        size = struct.unpack("i", f.read(4))[0]
+
+        f.seek(n * size)
+
+        self.content.setText(f.read(size).decode('utf-8'))
 
 
 class ProcessCreated(Action):
@@ -35,8 +76,33 @@ class ProcessCreated(Action):
             table.setItem(row, 1, QTableWidgetItem(value))
             row += 1
 
+
+        mmaps = QTableWidget()
+        mmaps.setColumnCount(2)
+        mmaps.setHorizontalHeaderItem(0, QTableWidgetItem("Variable"))
+        mmaps.setRowCount(len(self.process['mmap_content']))
+        mmaps.clicked.connect(self.viewClicked)
+
+
+        for row, mmap in enumerate(self.process['mmap_content']):
+            mmaps.setItem(row, 0, QTableWidgetItem("{}".format(mmap['address'])))
+            mmaps.setItem(row, 1, QTableWidgetItem("test"))
+            self.mmap = mmap
+
+
+
         window.addTab(cmdline, "Command")
         window.addTab(table, "Environments")
+        window.addTab(mmaps, "Mmaps")
+
+        d = MyDialog(window)
+        d.show()
+
+    def viewClicked(self, index):
+        #d = MyDialog(window)
+        #d.show()
+        pass
+
 
     def apply_filter(self, query):
         return evalme(query, process=self.process)
