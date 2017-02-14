@@ -72,7 +72,7 @@ def evalme(query, process=None, descriptor=None, type=None):
         if isinstance(s, str):
             s = ExactMatch(s)
 
-        return is_file(~Contains(".so") & s)
+        return is_file(~Contains(".so") & ~Endswith(".pyc") & s)
 
     def is_child_of(pid):
         if process:
