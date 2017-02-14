@@ -19,6 +19,9 @@ class InfoWidget(QWidget):
 
         items = []
 
+        if 'fd' in descriptor:
+            items.append("fd: {}".format(descriptor['fd']))
+
         if 'opened_pid' in descriptor:
             items.append("Opened in: <a href='#show_proc'>{pid}</a> {backtrace}".format(
                 pid=descriptor['opened_pid'],
