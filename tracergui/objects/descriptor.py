@@ -42,7 +42,7 @@ class Descriptor(Object):
                 return "unix:%s" % (self['remote'])
 
             if self['domain'] in [socket.AF_INET, socket.AF_INET6] and self['local']:  # TODO: quickfix
-                if self['remote'] is None:
+                if not isinstance(self['remote'], dict):
                     return "%s:%d" % (self['local']['address'], self['local']['port'])
 
                 return "%s:%d\\n<->\\n%s:%d" % (
