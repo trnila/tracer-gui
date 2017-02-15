@@ -105,15 +105,6 @@ class Graphviz:
                 pids[process['pid']].res.append(Signal(pid, kill['pid'], kill['signal'], system))
 
             for name in process['descriptors']:
-                # if name['type'] == 'socket' and 'server' in name and not name['server'] and len(self.systems) > 1:
-                #   continue
-
-                # filt(Res(name))
-
-
-                # if 'server' in name and name['server']:
-                #    dot_writer.write_edge(pid, self._id(name, system))
-
                 if name['type'] == 'socket' and name['socket_type'] == socket.SOCK_DGRAM and name[
                     'type'] == 'socket' and isinstance(name['local']['address'], list):
                     for addr in name['local']['address']:
@@ -143,7 +134,7 @@ class Graphviz:
                             x.des = Res(name)
                             pids[process['pid']].res.append(x)
 
-                if 'mmap' in name and len(name['mmap']):
+                if 'mmap' in name and name['mmap']:
                     x = Mmap(name)
                     x.des = Res(name)
                     pids[process['pid']].res.append(x)
