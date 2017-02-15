@@ -77,19 +77,22 @@ class ProcessCreated(Action):
             table.setItem(row, 1, QTableWidgetItem(value))
             row += 1
 
-        mmaps = QTableWidget()
-        mmaps.setColumnCount(2)
-        mmaps.setHorizontalHeaderItem(0, QTableWidgetItem("Variable"))
-        mmaps.setRowCount(len(self.process['regions']))
-        mmaps.clicked.connect(self.viewClicked)
-
-        for row, mmap in enumerate(self.process['regions']):
-            mmaps.setItem(row, 0, QTableWidgetItem("0x{:x}".format(mmap['address'])))
-            mmaps.setItem(row, 1, QTableWidgetItem(mmap['size']))
-
         window.addTab(cmdline, "Command")
         window.addTab(table, "Environments")
-        window.addTab(mmaps, "Mmaps")
+
+        if self.process['regions']:
+            mmaps = QTableWidget()
+            mmaps.setColumnCount(2)
+            mmaps.setHorizontalHeaderItem(0, QTableWidgetItem("Variable"))
+            mmaps.setRowCount(len(self.process['regions']))
+            mmaps.clicked.connect(self.viewClicked)
+
+            for row, mmap in enumerate(self.process['regions']):
+                print(mmap['size'])
+                mmaps.setItem(row, 0, QTableWidgetItem("0x{:x}".format(mmap['address'])))
+                mmaps.setItem(row, 1, QTableWidgetItem(str(mmap['size'])))
+
+            window.addTab(mmaps, "Mmaps")
 
         self.d = MyDialog(window)
 
