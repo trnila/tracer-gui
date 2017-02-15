@@ -1,4 +1,9 @@
 class Bag:
+    """
+     Used for transferring data though graphviz
+     Each write returns new id, that is put as additional parameter to graphviz. Parameter is then used in parsing
+     and object is take from this bag
+    """
     def __init__(self):
         self.id = 0
         self.data = {}
@@ -10,6 +15,7 @@ class Bag:
 
     def get(self, id):
         return self.data[id]
+
 
 class DotWriter:
     def __init__(self, out):
@@ -54,7 +60,6 @@ class DotWriter:
 
         return ", ".join(["%s=\"%s\"" % (i, self._escape(j)) for i, j in kwargs.items()])
 
-
-    def _escape(self, s):
+    @staticmethod
+    def _escape(s):
         return str(s).replace('"', '\\"')
-

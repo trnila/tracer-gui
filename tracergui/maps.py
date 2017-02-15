@@ -4,6 +4,8 @@ import signal
 import socket
 
 
+# TODO: this should be completely removed and moved to tracer
+
 class FlaggedDict:
     def __init__(self, flags):
         self.flags = flags

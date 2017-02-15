@@ -105,6 +105,7 @@ class Edge(Base):
     def __repr__(self):
         return "%s -> %s" % (self.src, self.dst)
 
+
 class Ellipse(Base):
     def __init__(self, *__args):
         super().__init__()
@@ -113,8 +114,9 @@ class Ellipse(Base):
         self.addToGroup(ellipse)
         ellipse.setAcceptHoverEvents(True)
 
+
 class Polygon(Base):
-    def __init__(self, points, filled = False):
+    def __init__(self, points, filled=False):
         super().__init__()
 
         polygon = QPolygonF()
@@ -123,6 +125,7 @@ class Polygon(Base):
             polygon.append(QPoint(point[0], point[1]))
         p = QGraphicsPolygonItem(polygon)
         self.addToGroup(p)
+
 
 class Text(QGraphicsTextItem):
     def __init__(self, str, x, y, size, w, fontname):
