@@ -1,3 +1,5 @@
+import html
+
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QWidget, QTextBrowser, QVBoxLayout
 
@@ -24,7 +26,7 @@ class TextView(QWidget):
             str += '<a href="%d" style="color:%s">%s</a>' % (
                 i,
                 colors[col % len(colors)],
-                frame.content
+                html.escape(frame.content)
             )
             col += 1
             i += 1
