@@ -34,11 +34,11 @@ class Des(Action):
         content = self.descriptor.process.system.read_file(self._get_file_id()).decode('utf-8', 'ignore')
 
         edit = TextView(self.get_backtrace(content))
-        window.addTab(InfoWidget(self.descriptor, graph), "Info")
         if 'sockopts' in self.descriptor:
             window.addTab(SocketOptionsWidget(self.descriptor['sockopts']), "Socket options")
         window.addTab(edit, "Content")
         self.create_hexview(content, window)
+        window.addTab(InfoWidget(self.descriptor, graph), "Info")
 
     def create_hexview(self, content, window):
         operations = self.get_backtrace(content)
