@@ -84,10 +84,6 @@ def evalme(query, process=None, descriptor=None, type=None):
 
         return False
 
-
-
-
-
     a = {
         "process": process,
         "descriptor": descriptor,
