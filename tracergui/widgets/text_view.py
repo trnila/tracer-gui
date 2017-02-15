@@ -11,31 +11,33 @@ class TextView(QWidget):
         super().__init__()
         self.backtraces = []
 
-        def handle_click(url):
-            browser.setSource(QUrl(""))  # dont redirect
-            backtraceWidget.new_backtrace.emit(self.backtraces[int(url.toString())])
+        self.browser = QTextBrowser()
+        self.browser.anchorClicked.connect(self.handle_click)
+        self.backtrace_widget = BacktraceWidget()
 
-        backtraceWidget = BacktraceWidget()
+        lay = QVBoxLayout()
+        lay.addWidget(self.browser)
+        lay.addWidget(self.backtrace_widget)
+        self.setLayout(lay)
 
-        str = ""
+        self.set_frames(backtrace)
+
+    def set_frames(self, backtrace):
+        text = ""
         colors = ['red', 'blue']
         col = 0
         i = 0
         for frame in backtrace.frames:
             self.backtraces.append(frame.backtrace)
-            str += '<a href="%d" style="color:%s">%s</a>' % (
+            text += '<a href="%d" style="color:%s">%s</a>' % (
                 i,
                 colors[col % len(colors)],
                 html.escape(frame.content)
             )
             col += 1
             i += 1
+        self.browser.setText(text.replace("\n", "<br>"))
 
-        browser = QTextBrowser()
-        browser.setText(str.replace("\n", "<br>"))
-        browser.anchorClicked.connect(handle_click)
-
-        lay = QVBoxLayout()
-        lay.addWidget(browser)
-        lay.addWidget(backtraceWidget)
-        self.setLayout(lay)
+    def handle_click(self, url):
+        self.browser.setSource(QUrl(""))  # dont redirect
+        self.backtrace_widget.new_backtrace.emit(self.backtraces[int(url.toString())])
