@@ -1,48 +1,49 @@
-import struct
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtWidgets import QDialogButtonBox
-from PyQt5.QtWidgets import QLineEdit
+import os
+
+from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow
-from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QTextEdit
-from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtWidgets import QWidget
 
 from tracergui.actions.action import Action
 from tracergui.evaluator import evalme
 
+
 class MyDialog(QMainWindow):
     def __init__(self, parent=None):
         super(MyDialog, self).__init__(parent)
+        uic.loadUi('/home/daniel/bak/src/gui/tracergui/widgets/region2.ui', self)
+        self.next.clicked.connect(self.show_next)
+        self.prev.clicked.connect(self.show_prev)
+        self.num.editingFinished.connect(self.change_frame)
 
-        self.content = QTextEdit()
+        self.frame = 0
+        self.total_frames = 0
 
-        btn = QPushButton()
-        self.n = 0
-        btn.clicked.connect(self.next)
+    def change_frame(self):
+        self.frame = self.num.text()
+        self.load(self.frame)
 
-        widget = QWidget()
-        widget.setLayout(QVBoxLayout())
-        widget.layout().addWidget(btn)
-        widget.layout().addWidget(self.content)
+    def show_next(self, a):
+        self.frame = min(self.frame + 1, self.total_frames)
+        self.load(self.frame)
 
-        self.setCentralWidget(widget)
+    def show_prev(self):
+        self.frame = max(0, self.frame - 1)
+        self.load(self.frame)
 
+    def set_region(self, region):
+        self.region = region
+        self.frame = 0
+        self.total_frames = int(os.path.getsize(region['content']) / region['size']) - 1
         self.load(0)
-
-    def next(self, a):
-        self.n += 1
-        self.load(self.n)
-
+        self.show()
 
     def load(self, n):
-        f = open("/tmp/rep/139987621609472_32", "rb")
-        size = struct.unpack("i", f.read(4))[0]
-
+        f = open(self.region['content'], "r", errors='replace')
+        size = self.region['size']
         f.seek(n * size)
-
-        self.content.setText(f.read(size).decode('utf-8'))
+        self.content.setText(f.read(size))
+        self.num.setValue(self.frame)
 
 
 class ProcessCreated(Action):
@@ -76,33 +77,24 @@ class ProcessCreated(Action):
             table.setItem(row, 1, QTableWidgetItem(value))
             row += 1
 
-
         mmaps = QTableWidget()
         mmaps.setColumnCount(2)
         mmaps.setHorizontalHeaderItem(0, QTableWidgetItem("Variable"))
-        mmaps.setRowCount(len(self.process['mmap_content']))
+        mmaps.setRowCount(len(self.process['regions']))
         mmaps.clicked.connect(self.viewClicked)
 
-
-        for row, mmap in enumerate(self.process['mmap_content']):
-            mmaps.setItem(row, 0, QTableWidgetItem("{}".format(mmap['address'])))
-            mmaps.setItem(row, 1, QTableWidgetItem("test"))
-            self.mmap = mmap
-
-
+        for row, mmap in enumerate(self.process['regions']):
+            mmaps.setItem(row, 0, QTableWidgetItem("0x{:x}".format(mmap['address'])))
+            mmaps.setItem(row, 1, QTableWidgetItem(mmap['size']))
 
         window.addTab(cmdline, "Command")
         window.addTab(table, "Environments")
         window.addTab(mmaps, "Mmaps")
 
-        d = MyDialog(window)
-        d.show()
+        self.d = MyDialog(window)
 
     def viewClicked(self, index):
-        #d = MyDialog(window)
-        #d.show()
-        pass
-
+        self.d.set_region(self.process['regions'][index.row()])
 
     def apply_filter(self, query):
         return evalme(query, process=self.process)
