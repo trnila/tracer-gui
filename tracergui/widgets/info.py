@@ -12,36 +12,34 @@ class InfoWidget(QWidget):
         self.descriptor = descriptor
         self.graphWidget = graph
 
-        text = QTextBrowser()
-        text.anchorClicked.connect(self.anchor_clicked)
+        self.browser = QTextBrowser()
+        self.browser.anchorClicked.connect(self.anchor_clicked)
 
         self.backtrace = BacktraceWidget()
 
-        items = []
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(self.browser)
+        self.layout().addWidget(self.backtrace)
 
+        self.set_descriptor(descriptor)
+
+    def set_descriptor(self, descriptor):
+        items = []
         if 'fd' in descriptor:
             items.append("fd: {}".format(descriptor['fd']))
-
         if 'opened_pid' in descriptor:
             items.append("Opened in: <a href='#show_proc'>{pid}</a> {backtrace}".format(
                 pid=descriptor['opened_pid'],
                 backtrace="(<a href='#backtrace'>Show backtrace</a>)" if not self.backtrace.is_empty(
                     descriptor['backtrace']) else ""
             ))
-
         if 'mode' in descriptor:
             items.append('Mode: %s' % maps.open_modes.format(descriptor['mode']))
-
         if 'domain' in descriptor:
             items.append("Domain: %s" % maps.domains.get(descriptor['domain']))
             items.append("Remote: %s" % descriptor['remote'])
             items.append("Type: %s" % maps.socket_types.get(descriptor['socket_type']))
-
-        text.setHtml("<br>".join(items))
-
-        self.setLayout(QVBoxLayout())
-        self.layout().addWidget(text)
-        self.layout().addWidget(self.backtrace)
+        self.browser.setHtml("<br>".join(items))
 
     def anchor_clicked(self, url):
         if url.toString() == "#backtrace":
