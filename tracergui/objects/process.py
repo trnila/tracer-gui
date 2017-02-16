@@ -12,3 +12,6 @@ class Process(Object):
 
     def __getitem__(self, item):
         return self.data[item]
+
+    def __contains__(self, item):
+        return item in self.data
