@@ -11,7 +11,7 @@ from tracergui.evaluator import evalme
 class MyDialog(QMainWindow):
     def __init__(self, parent=None):
         super(MyDialog, self).__init__(parent)
-        uic.loadUi('/home/daniel/bak/src/gui/tracergui/widgets/region2.ui', self)
+        uic.loadUi(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../widgets/region2.ui'), self)
         self.next.clicked.connect(self.show_next)
         self.prev.clicked.connect(self.show_prev)
         self.num.editingFinished.connect(self.change_frame)
