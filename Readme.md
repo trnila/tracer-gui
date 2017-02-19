@@ -1,16 +1,17 @@
 # tracer-gui
+## requirements
+- graphviz
+- python3
+- pyqt5
+
 ## install
 ```sh
-$ git clone https://github.com/trnila/tracer-gui.git
-$ cd tracer-gui
-$ virtualenv gui
-$ source ./gui/bin/activate
-$ pip install -r requirements.txt
-
+pip3 install git+https://github.com/trnila/tracer-gui.git
+pip3 install PyQt5 # if doesnt work, install package python3-pyqt5
 ```
 
 ## usage
 
 ```sh
-$ ./gui/bin/python app.py /tmp/report
+$ tracergui /tmp/report
 ```
