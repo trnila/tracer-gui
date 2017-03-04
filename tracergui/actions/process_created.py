@@ -80,7 +80,7 @@ class ProcessCreated(Action):
         window.addTab(cmdline, "Command")
         window.addTab(table, "Environments")
 
-        if 'regions' in self.process:
+        if 'regions' in self.process and self.process['regions']:
             mmaps = QTableWidget()
             mmaps.setColumnCount(2)
             mmaps.setHorizontalHeaderItem(0, QTableWidgetItem("Variable"))
