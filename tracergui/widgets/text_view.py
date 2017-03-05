@@ -18,8 +18,14 @@ class TextView(QTextBrowser):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
         self.file = None
+        self.raw_content = None
 
     def set_content(self, content, file=None):
+        self.raw_content = content
+
+        if isinstance(content, bytes):
+            content = content.decode('utf-8', 'replace')
+
         self.setText(content)
         self.file = file
 

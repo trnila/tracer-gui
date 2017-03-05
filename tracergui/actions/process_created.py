@@ -76,10 +76,10 @@ class RegionWidget(QMainWindow):
         self.show()
 
     def load(self, n):
-        f = open(self.region['content'], "r", errors='replace')
-        size = self.region['captured_size']
-        f.seek(n * size)
-        self.content.set_content(f.read(size))
+        with open(self.region['content'], "rb") as f:
+            size = self.region['captured_size']
+            f.seek(n * size)
+            self.content.set_content(f.read(size))
         self.num.setValue(self.frame)
 
 
