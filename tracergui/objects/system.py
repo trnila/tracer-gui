@@ -1,4 +1,5 @@
 import itertools
+import os
 
 from tracergui.objects.process import Process
 
@@ -30,4 +31,7 @@ class System:
         return self.processes[pid]
 
     def read_file(self, id):
-        return open(self.resource_path + "/" + id, 'rb').read()
+        return open(self.get_resource_path(id), 'rb').read()
+
+    def get_resource_path(self, id):
+        return os.path.join(self.resource_path, id)

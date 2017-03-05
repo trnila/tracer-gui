@@ -1,0 +1,5 @@
+EDITORS['hex edit with vim'] = "urxvt -e sh -c 'xxd %path% | vim -'";
+EDITORS['hex edit (bless)'] = "bless %path%"
+EDITORS['vim'] = "urxvt -e vim %path%"
+EDITORS['hachoir'] = "urxvt -e hachoir-urwid %path%"
+del EDITORS['system editor (xdg-open)'] # remove default editor

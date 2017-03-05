@@ -33,7 +33,8 @@ class Des(Action):
 
         content = self.descriptor.process.system.read_file(self._get_file_id()).decode('utf-8', 'ignore')
 
-        edit = TextView(self.get_backtrace(content))
+        edit = TextView(self.get_backtrace(content),
+                        self.descriptor.process.system.get_resource_path(self._get_file_id()))
         if 'sockopts' in self.descriptor:
             window.addTab(SocketOptionsWidget(self.descriptor['sockopts']), "Socket options")
         window.addTab(edit, "Content")
