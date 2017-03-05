@@ -34,13 +34,13 @@ class MyDialog(QMainWindow):
     def set_region(self, region):
         self.region = region
         self.frame = 0
-        self.total_frames = int(os.path.getsize(region['content']) / region['size']) - 1
+        self.total_frames = int(os.path.getsize(region['content']) / region['captured_size']) - 1
         self.load(0)
         self.show()
 
     def load(self, n):
         f = open(self.region['content'], "r", errors='replace')
-        size = self.region['size']
+        size = self.region['captured_size']
         f.seek(n * size)
         self.content.setText(f.read(size))
         self.num.setValue(self.frame)
@@ -88,7 +88,6 @@ class ProcessCreated(Action):
             mmaps.clicked.connect(self.viewClicked)
 
             for row, mmap in enumerate(self.process['regions']):
-                print(mmap['size'])
                 mmaps.setItem(row, 0, QTableWidgetItem("0x{:x}".format(mmap['address'])))
                 mmaps.setItem(row, 1, QTableWidgetItem(str(mmap['size'])))
 
