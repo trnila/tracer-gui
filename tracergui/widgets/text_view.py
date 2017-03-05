@@ -1,5 +1,7 @@
+import atexit
 import html
 import subprocess
+import tempfile
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import QUrl
@@ -11,6 +13,33 @@ from tracergui import settings
 from tracergui.widgets.backtrace import BacktraceWidget
 
 
+class ProgramExecutor:
+    def __init__(self):
+        atexit.register(self.collect)
+        self.temps = []
+
+    def collect(self):
+        self.temps = [item for item in self.temps if item[0].poll() is None and item[0].returncode is None]
+
+    def run(self, command, file=False, content=False):
+        self.collect()
+
+        temp = None
+        if not file:
+            temp = tempfile.NamedTemporaryFile()
+            temp.write(content)
+            temp.flush()
+            file = temp.name
+
+        # TODO: do proper escaping
+        escaped_cmd = command.replace("%path%", file)
+        print("executing {}".format(escaped_cmd))
+        child = subprocess.Popen(escaped_cmd, shell=True)
+
+        if temp:
+            self.temps.append((child, temp))
+
+
 class TextView(QTextBrowser):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -19,6 +48,7 @@ class TextView(QTextBrowser):
 
         self.file = None
         self.raw_content = None
+        self.executor = ProgramExecutor()
 
     def set_content(self, content, file=None):
         self.raw_content = content
@@ -32,22 +62,18 @@ class TextView(QTextBrowser):
     def _custom_menu(self, point):
         def open_editor(command):
             def fn():
-                # TODO: do proper escaping
-                escaped_cmd = command.replace("%path%", self.file)
-                print("executing {}".format(escaped_cmd))
-                subprocess.Popen(escaped_cmd, shell=True)
+                self.executor.run(command, self.file, self.raw_content)
 
             return fn
 
         menu = QMenu()
 
-        if self.file:
-            actions = []
-            for name, command in settings.EDITORS.items():
-                act = QAction("Open with {}".format(name))
-                act.triggered.connect(open_editor(command))
-                menu.addAction(act)
-                actions.append(act)  # XXX: why it is overwritten if not appended to list?
+        actions = []
+        for name, command in settings.EDITORS.items():
+            act = QAction("Open with {}".format(name))
+            act.triggered.connect(open_editor(command))
+            menu.addAction(act)
+            actions.append(act)  # XXX: why it is overwritten if not appended to list?
 
         menu.exec_(self.mapToGlobal(point))
 
