@@ -6,7 +6,7 @@ from tracergui.objects.backtrace import Frame, Backtrace
 from tracergui.widgets.hex import HexView
 from tracergui.widgets.info import InfoWidget
 from tracergui.widgets.socket_options import SocketOptionsWidget
-from tracergui.widgets.text_view import TextView
+from tracergui.widgets.text_view import TextBacktraceView
 
 
 class Des(Action):
@@ -33,8 +33,8 @@ class Des(Action):
 
         content = self.descriptor.process.system.read_file(self._get_file_id()).decode('utf-8', 'ignore')
 
-        edit = TextView(self.get_backtrace(content),
-                        self.descriptor.process.system.get_resource_path(self._get_file_id()))
+        edit = TextBacktraceView(self.get_backtrace(content),
+                                 self.descriptor.process.system.get_resource_path(self._get_file_id()))
         if 'sockopts' in self.descriptor:
             window.addTab(SocketOptionsWidget(self.descriptor['sockopts']), "Socket options")
         window.addTab(edit, "Content")
