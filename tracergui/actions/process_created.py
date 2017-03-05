@@ -93,12 +93,10 @@ class ProcessCreated(Action):
 
             window.addTab(mmaps, "Mmaps")
 
-        self.d = RegionWidget(window)
-
     def row_clicked(self, index):
         region = self.process['regions'][index.row()]
         if 'content' in region:
-            self.d.set_region(region)
+            self.window.widgets['region'].set_region(region)
 
     def apply_filter(self, query):
         return evalme(query, process=self.process)

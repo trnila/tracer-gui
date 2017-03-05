@@ -1,6 +1,6 @@
 import sys
-from PyQt5 import QtWidgets
 
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QLineEdit
@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QTabWidget
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
+from tracergui.actions.process_created import RegionWidget
 from tracergui.traced_data import TracedData, FilterException
 from tracergui.widgets.graph import GraphWidget
 
@@ -49,9 +50,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.filter.emit(DEFAULT_FILTER)
         self.graph.onSelected.connect(self.display)
 
+        self.widgets = {}
+        self.widgets['region'] = RegionWidget(self)
+
     def display(self, base):
         self.tab.clear()
         if getattr(base, 'action', None):
+            base.action.window = self  # XXX: not elegant solution
             base.action.gui(self.tab, self.graph)
 
     def filter_handler(self, text):
