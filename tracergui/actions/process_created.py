@@ -8,9 +8,9 @@ from tracergui.actions.action import Action
 from tracergui.evaluator import evalme
 
 
-class MyDialog(QMainWindow):
+class RegionWidget(QMainWindow):
     def __init__(self, parent=None):
-        super(MyDialog, self).__init__(parent)
+        super(RegionWidget, self).__init__(parent)
         uic.loadUi(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../widgets/region2.ui'), self)
         self.next.clicked.connect(self.show_next)
         self.prev.clicked.connect(self.show_prev)
@@ -85,7 +85,7 @@ class ProcessCreated(Action):
             mmaps.setColumnCount(2)
             mmaps.setHorizontalHeaderItem(0, QTableWidgetItem("Variable"))
             mmaps.setRowCount(len(self.process['regions']))
-            mmaps.clicked.connect(self.viewClicked)
+            mmaps.clicked.connect(self.row_clicked)
 
             for row, mmap in enumerate(self.process['regions']):
                 mmaps.setItem(row, 0, QTableWidgetItem("0x{:x}".format(mmap['address'])))
@@ -93,9 +93,9 @@ class ProcessCreated(Action):
 
             window.addTab(mmaps, "Mmaps")
 
-        self.d = MyDialog(window)
+        self.d = RegionWidget(window)
 
-    def viewClicked(self, index):
+    def row_clicked(self, index):
         region = self.process['regions'][index.row()]
         if 'content' in region:
             self.d.set_region(region)
