@@ -15,32 +15,21 @@ class Mmap(Des):
         )
 
     def gui(self, window, graph):
-        file = open(self.descriptor['path'], 'rb')
-
         def _format_mmap(item):
-            def r(range):
-                start, stop = range.split('-', 2)
-                start = int(start, 16) - item['address']
-                stop = int(stop, 16) - item['address']
-
-                file.seek(start)
-                return file.read(stop - start).decode('utf-8', 'ignore')
-
             content_link = ""
             if self.find_region(item['region_id']):
                 content_link = "<a href='#{}'>Show content</a>".format(item['region_id'])
 
-            return "0x%X - 0x%X (%s) %s %s %s %s" % (
+            return "0x%X - 0x%X (%s) %s %s %s" % (
                 item['address'],
                 item['address'] + item['length'],
                 utils.format_bytes(item['length']),
                 maps.mmap_prots.format(item['prot']),
                 maps.mmap_maps.format(item['flags']),
-                [r(i) for i in item['regions']],
                 content_link
             )
 
-        value = "\n".join(map(_format_mmap, self.descriptor['mmap']))
+        value = "<br>".join(map(_format_mmap, self.descriptor['mmap']))
 
         edit = QTextBrowser()
         edit.setHtml(value)

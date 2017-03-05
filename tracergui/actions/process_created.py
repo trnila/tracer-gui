@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QTextEd
 
 from tracergui.actions.action import Action
 from tracergui.evaluator import evalme
+from tracergui.utils import report_os_error
 from tracergui.widgets.text_view import TextView
 
 
@@ -69,17 +70,23 @@ class RegionWidget(QMainWindow):
         self.load(self.frame)
 
     def set_region(self, region):
-        self.region = region
-        self.frame = 0
-        self.total_frames = int(os.path.getsize(region['content']) / region['captured_size']) - 1
-        self.load(0)
-        self.show()
+        try:
+            self.region = region
+            self.frame = 0
+            self.total_frames = int(os.path.getsize(region['content']) / region['captured_size']) - 1
+            self.load(0)
+            self.show()
+        except OSError as e:
+            report_os_error(e)
 
     def load(self, n):
-        with open(self.region['content'], "rb") as f:
-            size = self.region['captured_size']
-            f.seek(n * size)
-            self.content.set_content(f.read(size))
+        try:
+            with open(self.region['content'], "rb") as f:
+                size = self.region['captured_size']
+                f.seek(n * size)
+                self.content.set_content(f.read(size))
+        except OSError as e:
+            report_os_error(e)
         self.num.setValue(self.frame)
 
 

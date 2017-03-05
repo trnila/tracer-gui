@@ -2,6 +2,7 @@ import itertools
 import os
 
 from tracergui.objects.process import Process
+from tracergui.utils import report_os_error
 
 
 class System:
@@ -31,7 +32,11 @@ class System:
         return self.processes[pid]
 
     def read_file(self, id):
-        return open(self.get_resource_path(id), 'rb').read()
+        try:
+            with open(self.get_resource_path(id), 'rb') as f:
+                return f.read()
+        except OSError as e:
+            report_os_error(e)
 
     def get_resource_path(self, id):
         return os.path.join(self.resource_path, id)
