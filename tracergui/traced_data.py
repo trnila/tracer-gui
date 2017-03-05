@@ -136,6 +136,7 @@ class Graphviz:
 
                 if 'mmap' in name and name['mmap']:
                     x = Mmap(name)
+                    x.process = process
                     x.des = Res(name)
                     pids[process['pid']].res.append(x)
 
