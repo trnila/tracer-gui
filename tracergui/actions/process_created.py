@@ -96,7 +96,9 @@ class ProcessCreated(Action):
         self.d = MyDialog(window)
 
     def viewClicked(self, index):
-        self.d.set_region(self.process['regions'][index.row()])
+        region = self.process['regions'][index.row()]
+        if 'content' in region:
+            self.d.set_region(region)
 
     def apply_filter(self, query):
         return evalme(query, process=self.process)
