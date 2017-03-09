@@ -1,61 +1,29 @@
 import os
 
-from PyQt5 import QtCore
-from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QTextEdit
 
 from tracergui.actions.action import Action
 from tracergui.evaluator import evalme
+from tracergui.ui.region import Ui_Region
 from tracergui.utils import report_os_error
-from tracergui.widgets.text_view import TextView
 
 
-class RegionWidget(QMainWindow):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.gridLayout = QtWidgets.QGridLayout()
-        self.gridLayout.setObjectName("gridLayout")
-        self.next = QtWidgets.QPushButton(self.centralwidget)
-        self.next.setObjectName("next")
-        self.gridLayout.addWidget(self.next, 0, 2, 1, 1)
-        self.num = QtWidgets.QSpinBox(self.centralwidget)
-        self.num.setObjectName("num")
-        self.gridLayout.addWidget(self.num, 0, 1, 1, 1)
-        self.prev = QtWidgets.QPushButton(self.centralwidget)
-        self.prev.setObjectName("prev")
-        self.gridLayout.addWidget(self.prev, 0, 0, 1, 1)
-        self.verticalLayout.addLayout(self.gridLayout)
-        self.content = TextView(self.centralwidget)
-        self.content.setObjectName("content")
-        self.verticalLayout.addWidget(self.content)
-        MainWindow.setCentralWidget(self.centralwidget)
-
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-    def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.next.setText(_translate("MainWindow", "Next"))
-        self.prev.setText(_translate("MainWindow", "Previous"))
-
+class RegionWidget(QMainWindow, Ui_Region):
     def __init__(self, parent=None):
         super(RegionWidget, self).__init__(parent)
-        # uic.loadUi(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../widgets/region2.ui'), self)
         self.setupUi(self)
 
         self.next.clicked.connect(self.show_next)
         self.prev.clicked.connect(self.show_prev)
         self.num.editingFinished.connect(self.change_frame)
+        self.code.changed.connect(self.on_code_changed)
 
         self.frame = 0
         self.total_frames = 0
+
+    def on_code_changed(self, content):
+        self.content.set_content(content)
 
     def change_frame(self):
         self.frame = self.num.text()
@@ -84,7 +52,7 @@ class RegionWidget(QMainWindow):
             with open(self.region['content'], "rb") as f:
                 size = self.region['captured_size']
                 f.seek(n * size)
-                self.content.set_content(f.read(size))
+                self.code.set_content(f.read(size))
         except OSError as e:
             report_os_error(e)
         self.num.setValue(self.frame)

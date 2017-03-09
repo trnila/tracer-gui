@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>Region</class>
+    <widget class="QMainWindow" name="Region">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>800</width>
+                <height>601</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>MainWindow</string>
+        </property>
+        <widget class="QWidget" name="centralwidget">
+            <layout class="QVBoxLayout" name="verticalLayout">
+                <item>
+                    <layout class="QGridLayout" name="gridLayout">
+                        <item row="0" column="2">
+                            <widget class="QPushButton" name="next">
+                                <property name="text">
+                                    <string>Next</string>
+                                </property>
+                            </widget>
+                        </item>
+                        <item row="0" column="1">
+                            <widget class="QSpinBox" name="num"/>
+                        </item>
+                        <item row="0" column="0">
+                            <widget class="QPushButton" name="prev">
+                                <property name="text">
+                                    <string>Previous</string>
+                                </property>
+                            </widget>
+                        </item>
+                    </layout>
+                </item>
+                <item>
+                    <widget class="TextView" name="content"/>
+                </item>
+                <item>
+                    <widget class="Code" name="code" native="true"/>
+                </item>
+            </layout>
+        </widget>
+    </widget>
+    <customwidgets>
+        <customwidget>
+            <class>Code</class>
+            <extends>QWidget</extends>
+            <header>tracergui/widgets/code.h</header>
+            <container>1</container>
+        </customwidget>
+        <customwidget>
+            <class>TextView</class>
+            <extends>QTextEdit</extends>
+            <header>tracergui/widgets/text_view</header>
+        </customwidget>
+    </customwidgets>
+    <resources/>
+    <connections/>
+</ui>
