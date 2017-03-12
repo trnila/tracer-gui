@@ -34,6 +34,7 @@ class Code(QWidget, Ui_code):
         if dialog.exec_():
             self.filename = dialog.selectedFiles()[0]
             self.content.setPlainText(read_file(self.filename))
+            self.execute()
 
     def save_as_handler(self):
         self.filename = None
@@ -42,8 +43,10 @@ class Code(QWidget, Ui_code):
     def save_handler(self):
         if not self.filename:
             dialog = self.create_file_dialog()
-            if dialog.exec_():
-                self.filename = dialog.selectedFiles()[0]
+            if not dialog.exec_():
+                return
+
+            self.filename = dialog.selectedFiles()[0]
 
         save_file(self.filename, self.content.toPlainText())
 
