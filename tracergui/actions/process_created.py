@@ -95,7 +95,7 @@ class ProcessCreated(Action):
 
         if 'regions' in self.process and self.process['regions']:
             mmaps = QTableWidget()
-            mmaps.setColumnCount(2)
+            mmaps.setColumnCount(4)
             mmaps.setHorizontalHeaderItem(0, QTableWidgetItem("Variable"))
             mmaps.setRowCount(len(self.process['regions']))
             mmaps.clicked.connect(self.row_clicked)
@@ -103,6 +103,8 @@ class ProcessCreated(Action):
             for row, mmap in enumerate(self.process['regions']):
                 mmaps.setItem(row, 0, QTableWidgetItem("0x{:x}".format(mmap['address'])))
                 mmaps.setItem(row, 1, QTableWidgetItem(str(mmap['size'])))
+                mmaps.setItem(row, 2, QTableWidgetItem("|".join(mmap['prot'])))
+                mmaps.setItem(row, 3, QTableWidgetItem("|".join(mmap['flags'])))
 
             window.addTab(mmaps, "Mmaps")
 
