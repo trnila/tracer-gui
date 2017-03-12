@@ -8,11 +8,10 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_code(object):
     def setupUi(self, code):
         code.setObjectName("code")
-        code.resize(400, 300)
+        code.resize(529, 300)
         self.verticalLayout = QtWidgets.QVBoxLayout(code)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -23,6 +22,12 @@ class Ui_code(object):
         self.btn_load_file = QtWidgets.QToolButton(code)
         self.btn_load_file.setObjectName("btn_load_file")
         self.horizontalLayout.addWidget(self.btn_load_file)
+        self.saveButton = QtWidgets.QToolButton(code)
+        self.saveButton.setObjectName("saveButton")
+        self.horizontalLayout.addWidget(self.saveButton)
+        self.saveAsBtn = QtWidgets.QToolButton(code)
+        self.saveAsBtn.setObjectName("saveAsBtn")
+        self.horizontalLayout.addWidget(self.saveAsBtn)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -38,3 +43,5 @@ class Ui_code(object):
         code.setWindowTitle(_translate("code", "Form"))
         self.toolButton.setText(_translate("code", "Execute"))
         self.btn_load_file.setText(_translate("code", "Load from file"))
+        self.saveButton.setText(_translate("code", "Save to file"))
+        self.saveAsBtn.setText(_translate("code", "Save to file as ..."))

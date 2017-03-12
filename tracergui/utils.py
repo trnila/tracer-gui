@@ -15,5 +15,22 @@ def system_open(path):
     subprocess.Popen(['xdg-open', path])
 
 
+def save_file(filename, content):
+    try:
+        with open(filename, "w") as f:
+            f.write(content)
+    except OSError as e:
+        report_os_error(e)
+
+
+def read_file(filename):
+    try:
+        with open(filename) as f:
+            return f.read()
+    except OSError as e:
+        report_os_error(e)
+    return None
+
+
 def report_os_error(e):
     QMessageBox().critical(None, "Could not open file", "Could not open file \"{}\": {}".format(e.filename, e.strerror))
