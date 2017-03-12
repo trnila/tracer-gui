@@ -16,7 +16,7 @@ class RegionWidget(QMainWindow, Ui_Region):
 
         self.next.clicked.connect(self.show_next)
         self.prev.clicked.connect(self.show_prev)
-        self.num.editingFinished.connect(self.change_frame)
+        self.num.valueChanged.connect(self.change_frame)
         self.code.changed.connect(self.on_code_changed)
 
         self.frame = 0
@@ -26,7 +26,7 @@ class RegionWidget(QMainWindow, Ui_Region):
         self.content.set_content(content)
 
     def change_frame(self):
-        self.frame = self.num.text()
+        self.frame = int(self.num.text())
         self.load(self.frame)
 
     def show_next(self, a):
@@ -42,6 +42,7 @@ class RegionWidget(QMainWindow, Ui_Region):
             self.region = region
             self.frame = 0
             self.total_frames = int(os.path.getsize(region['content']) / region['captured_size']) - 1
+            self.num.setMaximum(self.total_frames)
             self.load(0)
             self.show()
         except OSError as e:
