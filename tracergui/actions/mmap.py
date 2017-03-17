@@ -17,7 +17,7 @@ class Mmap(Des):
     def gui(self, window, graph):
         def _format_mmap(item):
             content_link = ""
-            if self.find_region(item['region_id']):
+            if self.find_region(item['region_id']) and item.get('content', None):
                 content_link = "<a href='#{}'>Show content</a>".format(item['region_id'])
 
             return "0x%X - 0x%X (%s) %s %s %s" % (

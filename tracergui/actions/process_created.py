@@ -39,6 +39,9 @@ class RegionWidget(QMainWindow, Ui_Region):
         self.load(self.frame)
 
     def set_region(self, region):
+        if not region.get('content', None):
+            return
+
         try:
             self.region = region
             self.frame = 0
