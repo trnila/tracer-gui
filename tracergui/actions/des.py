@@ -38,7 +38,7 @@ class Des(Action):
         if 'sockopts' in self.descriptor:
             window.addTab(SocketOptionsWidget(self.descriptor['sockopts']), "Socket options")
         window.addTab(edit, "Content")
-        self.create_hexview(content, window)
+        # self.create_hexview(content, window)
         window.addTab(InfoWidget(self.descriptor, graph), "Info")
 
     def create_hexview(self, content, window):

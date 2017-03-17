@@ -1,5 +1,6 @@
 import os
 
+from PyQt5.QtWidgets import QAbstractItemView
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QTextEdit
 
@@ -80,8 +81,12 @@ class ProcessCreated(Action):
         table.horizontalHeader().setStretchLastSection(True)
         table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.setRowCount(len(self.process['env']))
+        table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        table.setSelectionMode(QAbstractItemView.SingleSelection)
+        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         cmdline = QTextEdit()
+        cmdline.setReadOnly(True)
         cmdline.setPlainText(' '.join(self.process['arguments']))
 
         row = 0
@@ -96,9 +101,15 @@ class ProcessCreated(Action):
         if 'regions' in self.process and self.process['regions']:
             mmaps = QTableWidget()
             mmaps.setColumnCount(4)
-            mmaps.setHorizontalHeaderItem(0, QTableWidgetItem("Variable"))
+            for i, name in enumerate(["Variable", "Size", "Protection", "Flags"]):
+                mmaps.setHorizontalHeaderItem(i, QTableWidgetItem(name))
             mmaps.setRowCount(len(self.process['regions']))
             mmaps.clicked.connect(self.row_clicked)
+            mmaps.setSelectionBehavior(QAbstractItemView.SelectRows)
+            mmaps.setSelectionMode(QAbstractItemView.SingleSelection)
+            mmaps.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            mmaps.horizontalHeader().setStretchLastSection(True)
+            mmaps.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
             for row, mmap in enumerate(self.process['regions']):
                 mmaps.setItem(row, 0, QTableWidgetItem("0x{:x}".format(mmap['address'])))
