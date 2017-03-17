@@ -2,7 +2,6 @@ from PyQt5.QtWidgets import QTextBrowser
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
-from tracergui import maps
 from tracergui.widgets.backtrace import BacktraceWidget
 
 
@@ -34,11 +33,13 @@ class InfoWidget(QWidget):
                     descriptor['backtrace']) else ""
             ))
         if 'mode' in descriptor:
-            items.append('Mode: %s' % maps.open_modes.format(descriptor['mode']))
+            items.append('Mode: {}'.format("|".join(descriptor['mode'])))
+        if 'flags' in descriptor:
+            items.append('Flags: {}'.format("|".join(descriptor['flags'])))
         if 'domain' in descriptor:
-            items.append("Domain: %s" % maps.domains.get(descriptor['domain']))
+            items.append("Domain: %s" % descriptor['domain'])
             items.append("Remote: %s" % descriptor['remote'])
-            items.append("Type: %s" % maps.socket_types.get(descriptor['socket_type']))
+            items.append("Type: %s" % descriptor['socket_type'])
         self.browser.setHtml("<br>".join(items))
 
     def anchor_clicked(self, url):

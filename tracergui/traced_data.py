@@ -3,7 +3,6 @@ import copy
 import json
 import os
 import parser
-import socket
 import subprocess
 from io import StringIO
 
@@ -82,8 +81,7 @@ class Graphviz:
 
                 for res in proc.res:
                     if (isinstance(res, ReadDes) or isinstance(res, WriteDes)) and res.descriptor[
-                        'type'] == 'socket' and res.descriptor['domain'] in [
-                        socket.AF_INET, socket.AF_INET6]:
+                        'type'] == 'socket' and res.descriptor['domain'] in ['AF_INET', 'AF_INET6']:
                         if self.test(res.des):
                             res.des.generate(dot_writer)
 
@@ -105,7 +103,7 @@ class Graphviz:
                 pids[process['pid']].res.append(Signal(pid, kill['pid'], kill['signal'], system))
 
             for name in process['descriptors']:
-                if name['type'] == 'socket' and name['socket_type'] == socket.SOCK_DGRAM and name[
+                if name['type'] == 'socket' and name['socket_type'] == 'SOCK_DGRAM' and name[
                     'type'] == 'socket' and isinstance(name['local']['address'], list):
                     for addr in name['local']['address']:
                         contents = {
