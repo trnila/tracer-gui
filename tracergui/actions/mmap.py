@@ -1,6 +1,5 @@
 from PyQt5.QtWidgets import QTextBrowser
 
-from tracergui import maps
 from tracergui import utils
 from tracergui.actions.des import Des
 from tracergui.evaluator import evalme
@@ -24,8 +23,8 @@ class Mmap(Des):
                 item['address'],
                 item['address'] + item['length'],
                 utils.format_bytes(item['length']),
-                maps.mmap_prots.format(item['prot']),
-                maps.mmap_maps.format(item['flags']),
+                "|".join(item['prot']),
+                "|".join(item['flags']),
                 content_link
             )
 

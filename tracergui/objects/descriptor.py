@@ -1,5 +1,3 @@
-import socket
-
 from tracergui.objects.object import Object
 
 
@@ -21,7 +19,7 @@ class Descriptor(Object):
         if self['type'] == 'pipe':
             return "%s_%s" % (id(self.process.system), self['pipe_id'])
 
-        if self['type'] == 'socket' and self['domain'] in [socket.AF_INET, socket.AF_INET6]:
+        if self['type'] == 'socket' and self['domain'] in ['AF_INET', 'AF_INET6']:
             try:
                 parts = sorted([
                     self['local']['address'],
@@ -38,10 +36,10 @@ class Descriptor(Object):
 
     def get_label(self):
         if self['type'] == 'socket':
-            if self['domain'] == socket.AF_UNIX:
+            if self['domain'] == 'AF_UNIX':
                 return "unix:%s" % (self['remote'])
 
-            if self['domain'] in [socket.AF_INET, socket.AF_INET6] and self['local']:  # TODO: quickfix
+            if self['domain'] in ['AF_INET', 'AF_INET6'] and self['local']:  # TODO: quickfix
                 if not isinstance(self['remote'], dict):
                     return "%s:%d" % (self['local']['address'], self['local']['port'])
 

@@ -1,4 +1,3 @@
-from tracergui import maps
 from tracergui.actions.action import Action
 
 
@@ -13,4 +12,4 @@ class Signal(Action):
         return True
 
     def generate(self, dot_writer):
-        dot_writer.write_edge(self.sender_pid, self.receiver_pid, label=maps.signals[self.signal])
+        dot_writer.write_edge(self.sender_pid, self.receiver_pid, label=self.signal)
