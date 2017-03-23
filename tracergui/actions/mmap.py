@@ -15,16 +15,22 @@ class Mmap(Des):
 
     def gui(self, window, graph):
         def _format_mmap(item):
+            region = self.find_region(item['region_id'])
+
+            if not region:
+                print('Missing region?')
+                return
+
             content_link = ""
-            if self.find_region(item['region_id']) and item.get('content', None):
+            if region and item.get('content', None):
                 content_link = "<a href='#{}'>Show content</a>".format(item['region_id'])
 
             return "0x%X - 0x%X (%s) %s %s %s" % (
-                item['address'],
-                item['address'] + item['length'],
-                utils.format_bytes(item['length']),
-                "|".join(item['prot']),
-                "|".join(item['flags']),
+                region['address'],
+                region['address'] + region['size'],
+                utils.format_bytes(region['size']),
+                "|".join(region['prot']),
+                "|".join(region['flags']),
                 content_link
             )
 
