@@ -14,7 +14,7 @@ from tracergui.actions.process_created import RegionWidget
 from tracergui.traced_data import TracedData, FilterException
 from tracergui.widgets.graph import GraphWidget
 
-DEFAULT_FILTER = "process or is_file2() or (descriptor and descriptor['type'] == 'socket')"
+DEFAULT_FILTER = "process or is_file2() or (descriptor and descriptor['type'] in ['socket', 'pipe'])"
 
 
 class MainWindow(QtWidgets.QMainWindow):
