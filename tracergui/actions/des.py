@@ -52,7 +52,7 @@ class Des(Action):
         for operation in self.descriptor['operations']:
             if operation['type'] == self.type():
                 frame = Frame(content[start:start + operation['size']])
-                frame.backtrace = operation['backtrace']
+                frame.backtrace = operation.get('backtrace', [])
                 backtrace.add_frame(frame)
 
                 start += operation['size']
