@@ -1,4 +1,4 @@
-# tracer-gui
+# tracer-gui [![Build Status](https://travis-ci.org/trnila/tracer-gui.svg?branch=master)](https://travis-ci.org/trnila/tracer-gui)
 ## requirements
 - graphviz
 - python3
