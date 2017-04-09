@@ -79,6 +79,8 @@ class TextView(QTextBrowser):
 
 
 class TextBacktraceView(QWidget):
+    TAB_SIZE = 2
+
     def __init__(self, backtrace, file=None):
         super().__init__()
         self.file = file
@@ -103,10 +105,10 @@ class TextBacktraceView(QWidget):
         i = 0
         for frame in backtrace.frames:
             self.backtraces.append(frame.backtrace)
-            text += '<a href="%d" style="color:%s">%s</a>' % (
+            text += '<a href="%d" style="color:%s;text-decoration:none;">%s</a>' % (
                 i,
                 colors[col % len(colors)],
-                html.escape(frame.content)
+                html.escape(frame.content).replace('\t', ' ' * self.TAB_SIZE).replace(' ', '&nbsp;')
             )
             col += 1
             i += 1
