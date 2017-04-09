@@ -14,40 +14,42 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-class Shape:
-	"""Abstract base class for all the drawing shapes."""
 
-	def __init__(self):
-		pass
+class Shape:
+    """Abstract base class for all the drawing shapes."""
+
+    def __init__(self):
+        pass
+
 
 class EllipseShape(Shape):
-	def __init__(self, pen, x0, y0, w, h, filled=False):
-		Shape.__init__(self)
-		self.pen = pen.copy()
-		self.x0 = x0
-		self.y0 = y0
-		self.w = w
-		self.h = h
-		self.filled = filled
+    def __init__(self, pen, x0, y0, w, h, filled=False):
+        Shape.__init__(self)
+        self.pen = pen.copy()
+        self.x0 = x0
+        self.y0 = y0
+        self.w = w
+        self.h = h
+        self.filled = filled
 
 
 class LineShape(Shape):
-	def __init__(self, pen, points):
-		Shape.__init__(self)
-		self.pen = pen.copy()
-		self.points = points
+    def __init__(self, pen, points):
+        Shape.__init__(self)
+        self.pen = pen.copy()
+        self.points = points
 
 
 class BezierShape(Shape):
-	def __init__(self, pen, points, filled=False):
-		Shape.__init__(self)
-		self.pen = pen.copy()
-		self.points = points
-		self.filled = filled
+    def __init__(self, pen, points, filled=False):
+        Shape.__init__(self)
+        self.pen = pen.copy()
+        self.points = points
+        self.filled = filled
 
 
 class Graph:
-	def __init__(self, nodes, edges, shapes):
-		self.nodes = nodes
-		self.edges = edges
-		self.shapes = shapes
+    def __init__(self, nodes, edges, shapes):
+        self.nodes = nodes
+        self.edges = edges
+        self.shapes = shapes

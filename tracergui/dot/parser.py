@@ -55,19 +55,19 @@ class Parser:
     def match(self, type):
         if self.lookahead.type != type:
             raise ParseError(
-                    msg='unexpected token {}'.format(self.lookahead.text),
-                    filename=self.lexer.filename,
-                    line=self.lookahead.line,
-                    col=self.lookahead.col)
+                msg='unexpected token {}'.format(self.lookahead.text),
+                filename=self.lexer.filename,
+                line=self.lookahead.line,
+                col=self.lookahead.col)
 
     def skip(self, type):
         while self.lookahead.type != type:
             if self.lookahead.type == EOF:
                 raise ParseError(
-                        msg='unexpected end of file',
-                        filename=self.lexer.filename,
-                        line=self.lookahead.line,
-                        col=self.lookahead.col)
+                    msg='unexpected end of file',
+                    filename=self.lexer.filename,
+                    line=self.lookahead.line,
+                    col=self.lookahead.col)
             self.consume()
 
     def consume(self):
@@ -78,9 +78,9 @@ class Parser:
 
 class XDotAttrParser:
     """Parser for xdot drawing attributes.
-	See also:
-	- http://www.graphviz.org/doc/info/output.html#d:xdot
-	"""
+       See also:
+       - http://www.graphviz.org/doc/info/output.html#d:xdot
+    """
 
     def __init__(self, parser, buf):
         self.parser = parser
@@ -138,7 +138,8 @@ class XDotAttrParser:
         c = self.read_text()
         c1 = c[:1]
         if c1 == '#':
-            hex2float = lambda h: float(int(h, 16) / 255.0)
+            def hex2float(h):
+                return float(int(h, 16) / 255.0)
             r = hex2float(c[1:3])
             g = hex2float(c[3:5])
             b = hex2float(c[5:7])
@@ -157,7 +158,7 @@ class XDotAttrParser:
             sys.stderr.write('warning: color gradients not supported yet\n')
             return None
         else:
-            return lookup_color(c)
+            raise RuntimeError("Unable to parse color")
 
     def parse(self):
         s = self
@@ -293,6 +294,7 @@ class XDotAttrParser:
             self.shapes.append(Polygon(points, filled=True))
         self.shapes.append(Polygon(points))
 
+
 class DotParser(Parser):
     def __init__(self, lexer):
         Parser.__init__(self, lexer)
@@ -388,15 +390,10 @@ class DotParser(Parser):
         node_id = self.parse_id()
         if self.lookahead.type == COLON:
             self.consume()
-            port = self.parse_id()
+            self.parse_id()  # port
             if self.lookahead.type == COLON:
                 self.consume()
-                compass_pt = self.parse_id()
-            else:
-                compass_pt = None
-        else:
-            port = None
-            compass_pt = None
+                self.parse_id()  # compass_pt
         # XXX: we don't really care about port and compass point
         # values when parsing xdot
         return node_id
@@ -496,7 +493,6 @@ class XDotParser(DotParser):
             proc = self.bag.get(int(attrs['data_id'].decode('utf-8')))
         except:
             pass
-
 
         if proc:
             node = Process(proc, x - w / 2, y - h / 2, w, h)
