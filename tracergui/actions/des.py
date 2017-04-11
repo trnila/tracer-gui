@@ -1,3 +1,4 @@
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QTextEdit
 
 from tracergui.actions.action import Action
@@ -25,6 +26,13 @@ class Des(Action):
         raise NotImplementedError()
 
     def gui(self, window, graph):
+        print(self.hash)
+        print(graph.hashes[self.hash])
+
+        for edge in graph.hashes[self.hash]:
+            edge.i.setPen(QColor(0, 0, 255))
+
+
         if self.content:
             edit = QTextEdit()
             edit.setText(self.content)

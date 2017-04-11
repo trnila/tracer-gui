@@ -40,7 +40,7 @@ class GraphWidget(QtWidgets.QGraphicsView):
         object.setSelected(True)
 
     def create_graph(self, filter=None):
-        self.graph = self.data.create_graph(filter)
+        self.graph, self.hashes = self.data.create_graph(filter)
         self.p.clear()
         for type in [self.graph.shapes, self.graph.nodes, self.graph.edges]:
             for node in type:
