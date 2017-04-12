@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from tracergui.evaluator import evalme
+from tracergui.evaluator import evalme, Regexp
 from tracergui.objects.descriptor import Descriptor
 from tracergui.objects.process import Process
 from tracergui.objects.system import System
@@ -86,3 +86,8 @@ class TestEvaluator(TestCase):
                      "is_file(contains('.so') or contains('.so'))"]:
             with self.assertRaisesRegex(SyntaxError, "operators not allowed"):
                 self.assertTrue(evalme(expr, descriptor=desc))
+
+    def test_regexp(self):
+        self.assertTrue(Regexp(r"^/bin/(bash|passwd)$").matches("/bin/bash"))
+        self.assertTrue(Regexp(r"^/bin/(bash|passwd)$").matches("/bin/passwd"))
+        self.assertFalse(Regexp(r"^/bin/(bash|passwd)$").matches("/bin/passwd/"))

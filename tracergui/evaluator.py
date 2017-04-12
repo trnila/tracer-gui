@@ -1,3 +1,6 @@
+import re
+
+
 class Expr:
     def matches(self, str2):
         raise NotImplemented
@@ -44,6 +47,15 @@ class Endswith(UnaryExpr):
 class Startswith(UnaryExpr):
     def matches(self, str2):
         return str2.startswith(self.str)
+
+
+class Regexp(UnaryExpr):
+    def __init__(self, s):
+        super().__init__(s)
+        self.pattern = re.compile(s)
+
+    def matches(self, str2):
+        return self.pattern.match(str2)
 
 
 class Not(UnaryExpr):
@@ -94,6 +106,7 @@ def evalme(query, process=None, descriptor=None, type=None):
         "endswith": Endswith,
         "startswith": Startswith,
         "exactmatch": ExactMatch,
+        "regexp": Regexp,
         "is_child_of": is_child_of,
         "Not": Not,
         "And": And,
