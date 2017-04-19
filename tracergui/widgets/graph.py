@@ -1,5 +1,4 @@
 from PyQt5 import QtWidgets
-
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QGraphicsItem
@@ -35,7 +34,9 @@ class GraphWidget(QtWidgets.QGraphicsView):
 
     def handle_select(self, object):
         for i in self.p.selectedItems():
+            i.setSecondFocus(False)
             i.setSelected(False)
+            i.update()
 
         object.setSelected(True)
 
@@ -57,7 +58,6 @@ class GraphWidget(QtWidgets.QGraphicsView):
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
 
     def mousePressEvent(self, QMouseEvent):
-        super().mousePressEvent(QMouseEvent)
         item = self.itemAt(QMouseEvent.x(), QMouseEvent.y())
 
         while item and not isinstance(item, Base):

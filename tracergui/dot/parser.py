@@ -528,7 +528,7 @@ class XDotParser(DotParser):
 
             try:
                 edge.action = self.bag.get(int(attrs['data_id'].decode('utf-8')))
-                edge.action.i = edge
+                edge.action.graphic_elem = edge
             except:
                 pass
 
