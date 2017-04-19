@@ -16,36 +16,55 @@ from PyQt5.QtWidgets import QStyle
 
 
 class Base(QGraphicsItemGroup):
+    SECOND_FOCUS = 0
+
     def __init__(self):
         super().__init__()
         self.setFlags(QGraphicsItem.ItemIsSelectable)
+        self.hovered = False
+
+    def calc_color(self):
+        if self.hasSecondFocus():
+            return QColor(0, 0, 255)
+
+        if self.hovered:
+            return QColor(255, 0, 0)
+
+        if self.isSelected():
+            return QColor(255, 0, 0)
+
+        return QColor(0, 0, 0)
 
     def itemChange(self, evt, val):
         if evt == QGraphicsItem.ItemSelectedChange and not val:
             for g in self.childItems():
-                self.setColorTo(g, QColor(0, 0, 0))
+                if not g.isSelected():
+                    self.setColorTo(g, QColor(0, 0, 0))
 
         return super().itemChange(evt, val)
 
     def paint(self, QPainter, QStyleOptionGraphicsItem, widget=None):
-        if self.isSelected():
-            for g in self.childItems():
-                self.setColorTo(g, QColor(255, 0, 0))
+        for g in self.childItems():
+            self.setColorTo(g, self.calc_color())
 
         QStyleOptionGraphicsItem.state &= ~QStyle.State_Selected
         return super().paint(QPainter, QStyleOptionGraphicsItem, widget)
 
     def hoverEnterEvent(self, QGraphicsSceneHoverEvent):
         super().hoverEnterEvent(QGraphicsSceneHoverEvent)
+        self.hovered = True
 
         for g in self.childItems():
-            self.setColorTo(g, QColor(255, 0, 0))
+            g.hovered = True
+            self.setColorTo(g, self.calc_color())
 
     def hoverLeaveEvent(self, QGraphicsSceneHoverEvent):
         super().hoverLeaveEvent(QGraphicsSceneHoverEvent)
+        self.hovered = False
 
         for g in self.childItems():
-            self.setColorTo(g, QColor(0, 0, 0))
+            g.hovered = False
+            self.setColorTo(g, self.calc_color())
 
     def setColorTo(self, g, color):
         if isinstance(g, QGraphicsTextItem):
@@ -60,6 +79,15 @@ class Base(QGraphicsItemGroup):
     def setPen(self, color):
         for i in self.childItems():
             i.setPen(color)
+
+    def setSecondFocus(self, focus):
+        self.setData(self.SECOND_FOCUS, focus)
+
+        for ch in self.childItems():
+            ch.setData(self.SECOND_FOCUS, focus)
+
+    def hasSecondFocus(self):
+        return self.data(self.SECOND_FOCUS)
 
     def shape(self):
         for i in self.childItems():

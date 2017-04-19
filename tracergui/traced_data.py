@@ -15,6 +15,7 @@ from tracergui.actions.write_des import WriteDes
 from tracergui.dot.parser import XDotParser
 from tracergui.dot_writer import DotWriter
 from tracergui.objects.system import System
+from tracergui.utils import hash_file
 
 
 class FilterException(Exception):
@@ -39,9 +40,9 @@ class TracedData:
         return parser.parse()
 
     def create_graph(self, filter=None):
-        dot_writer = self.graphviz.create_graph(filter)
+        dot_writer, hashes = self.graphviz.create_graph(filter)
 
-        return self.gen_graph(dot_writer)
+        return self.gen_graph(dot_writer), hashes
 
 
 class Graphviz:
@@ -55,7 +56,8 @@ class Graphviz:
     def create_graph(self, filter=None):
         self.filter = "True" if not filter else filter
 
-        roots = [self.create_system(system) for system in self.systems]
+        hashes = {}
+        roots = [self.create_system(system, hashes) for system in self.systems]
 
         str = StringIO()
         dot_writer = DotWriter(str)
@@ -70,7 +72,7 @@ class Graphviz:
 
         dot_writer.end()
 
-        return dot_writer
+        return dot_writer, hashes
 
     def create_network(self, dot_writer, roots):
         dot_writer.begin_subgraph("NETWORK")
@@ -89,7 +91,7 @@ class Graphviz:
             g(root)
         dot_writer.end_subgraph()
 
-    def create_system(self, system):
+    def create_system(self, system, hashes):
         pids = {}
         for pid, process in system.processes.items():
             parent = system.get_process_by_pid(process['parent']) if process['parent'] > 0 else None
@@ -131,6 +133,11 @@ class Graphviz:
                         if key in name:
                             x = factory(name)
                             x.des = Res(name)
+
+                            myhash = hash_file(system.open(name[key]))
+                            x.hash = myhash
+                            hashes.setdefault(myhash, []).append(x)
+
                             pids[process['pid']].res.append(x)
 
                 if 'mmap' in name and name['mmap']:

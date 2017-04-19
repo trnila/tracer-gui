@@ -1,5 +1,6 @@
 import subprocess
 
+import hashlib
 from PyQt5.QtWidgets import QMessageBox
 
 
@@ -34,3 +35,11 @@ def read_file(filename):
 
 def report_os_error(e):
     QMessageBox().critical(None, "Could not open file", "Could not open file \"{}\": {}".format(e.filename, e.strerror))
+
+
+def hash_file(handle):
+    hash_md5 = hashlib.md5()
+    with handle:
+        for chunk in iter(lambda: handle.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()

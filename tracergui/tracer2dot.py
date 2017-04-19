@@ -15,7 +15,7 @@ def main():
         for directory in options.directory:
             graph.load(directory)
 
-        print(graph.create_graph(options.filter).get_content())
+        print(graph.create_graph(options.filter)[0].get_content())
     except FileNotFoundError as e:
         print("Report error: {}".format(e))
     except FilterException as e:

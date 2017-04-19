@@ -25,6 +25,11 @@ class Des(Action):
         raise NotImplementedError()
 
     def gui(self, window, graph):
+        for edge in graph.hashes[self.hash]:
+            if self.graphic_elem != edge.graphic_elem:
+                edge.graphic_elem.setSecondFocus(True)
+                edge.graphic_elem.setSelected(True)
+
         if self.content:
             edit = QTextEdit()
             edit.setText(self.content)

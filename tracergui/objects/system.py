@@ -31,9 +31,12 @@ class System:
     def get_process_by_pid(self, pid):
         return self.processes[pid]
 
-    def read_file(self, id):
+    def open(self, path):
+        return open(self.get_resource_path(path), 'rb')
+
+    def read_file(self, path):
         try:
-            with open(self.get_resource_path(id), 'rb') as f:
+            with open(self.get_resource_path(path), 'rb') as f:
                 return f.read()
         except OSError as e:
             report_os_error(e)
