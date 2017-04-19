@@ -26,9 +26,12 @@ class Des(Action):
 
     def gui(self, window, graph):
         for edge in graph.hashes[self.hash]:
-            if self.graphic_elem != edge.graphic_elem:
-                edge.graphic_elem.setSecondFocus(True)
-                edge.graphic_elem.setSelected(True)
+            try:
+                if self.graphic_elem != edge.graphic_elem:
+                    edge.graphic_elem.setSecondFocus(True)
+                    edge.graphic_elem.setSelected(True)
+            except:
+                pass  # some elements may not have graphic_elem
 
         if self.content:
             edit = QTextEdit()
