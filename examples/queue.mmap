@@ -1,0 +1,33 @@
+import struct
+SIZE = 5
+SEM_SIZE = 32
+lines = []
+
+def sem_val(n):
+  start = SEM_SIZE * n
+  return struct.unpack("I", raw[start:start+4])[0]
+
+lines.append("Lock states:")
+for n, lock in enumerate(["lock", "fill", "empty"]):
+  lines.append("{}={}".format(lock, sem_val(n)))
+
+lines.append("")
+rem = raw[32 * 3:]
+head, tail = struct.unpack("II", rem[0:8])
+lines.append("head={} tail={}".format(head, tail))
+
+
+data = rem[8:13].decode('utf-8')
+
+
+if head == tail:
+  queue = "empty"
+elif tail < head:
+  queue = data[tail:head]
+else:
+  queue = data[tail:SIZE-1] + data[0:head]
+
+lines.append("\n{}".format(queue))
+#lines.append("\n{}".format(data))
+
+result = "\n".join(lines)
